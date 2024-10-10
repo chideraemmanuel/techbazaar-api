@@ -45,3 +45,34 @@ export const userEmailVerificationSchema = z.object({
     .trim(),
   OTP: z.string().min(6, 'Invalid OTP').max(6, 'Invalid OTP').trim(),
 });
+
+export const OTPResendSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Please supply an email address')
+    .email('Invalid email address')
+    .toLowerCase()
+    .trim(),
+});
+
+export const passwordResetRequestSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Please supply an email address')
+    .email('Invalid email address')
+    .toLowerCase()
+    .trim(),
+});
+
+export const passwordResetCompletionSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Please supply an email address')
+    .email('Invalid email address')
+    .toLowerCase()
+    .trim(),
+  OTP: z.string().min(6, 'Invalid OTP').max(6, 'Invalid OTP').trim(),
+  new_password: z
+    .string()
+    .refine((value) => PASSWORD_REGEX.regex.test(value), PASSWORD_REGEX.hint),
+});
