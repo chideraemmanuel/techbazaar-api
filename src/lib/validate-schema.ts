@@ -1,4 +1,5 @@
-import { SafeParseReturnType, ZodSchema } from 'zod';
+import { SafeParseReturnType, z, ZodSchema } from 'zod';
+import HttpError from './http-error';
 
 /**
  *
@@ -12,13 +13,16 @@ import { SafeParseReturnType, ZodSchema } from 'zod';
 
 // export default validateSchema;
 
-const validateSchema = <T>(
-  data: any,
-  schema: ZodSchema
-): SafeParseReturnType<T, T> => {
-  return schema.safeParse(data);
+const validateSchema = <T>(data: any, schema: ZodSchema): T => {
+  const { success, error, data: validated_data } = schema.safeParse(data);
+
+  if (!success) {
+    console.log('error.format()._errors', error.format()._errors);
+
+    throw new HttpError(error.format()._errors[0], 400);
+  }
+
+  return validated_data;
 };
 
 export default validateSchema;
-
-// const { success, error, data } = validateSchema<z.infer<typeof userRegistrationSchema>>(request.body, userRegistrationSchema);
