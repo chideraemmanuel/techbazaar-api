@@ -95,3 +95,45 @@ export const addProductSchema = z.object({
   is_featured: z.enum(['true', 'false']).optional(),
   is_archived: z.enum(['true', 'false']).optional(),
 });
+
+export const productUpdateSchema = z.object({
+  name: z.string().min(1, 'Product name cannot be empty').optional(),
+  brand: z.string().min(1, 'Product brand cannot be empty').optional(),
+  description: z
+    .string()
+    .min(1, 'Product description cannot be empty')
+    .optional(),
+  category: z
+    .enum([
+      'smartphones',
+      'tablets',
+      'laptops',
+      'headphones',
+      'speakers',
+      'smartwatches',
+      'gaming-consoles',
+    ])
+    .optional(),
+  image: z
+    .instanceof(File)
+    .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+      'Only JPEG, JPG, PNG, and WebP formats are supported.'
+    )
+    .optional(),
+  price: z
+    .number({
+      invalid_type_error: 'Product price should be a numeric value',
+    })
+    .positive('Product price should be a positive numeric value')
+    .optional(),
+  stock: z
+    .number({
+      invalid_type_error: 'Stock should be a numeric value',
+    })
+    .positive('Stock should be a positive numeric value')
+    .optional(),
+  is_featured: z.enum(['true', 'false']).optional(),
+  is_archived: z.enum(['true', 'false']).optional(),
+});

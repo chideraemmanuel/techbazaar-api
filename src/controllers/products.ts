@@ -1,6 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import validateSchema from '../lib/validate-schema';
-import { addProductSchema, getProductsFilterSchema } from '../schemas/product';
+import {
+  addProductSchema,
+  getProductsFilterSchema,
+  productUpdateSchema,
+} from '../schemas/product';
 import z from 'zod';
 import mongoose from 'mongoose';
 import Product, { ProductCategory } from '../models/product';
@@ -8,7 +12,13 @@ import Brand from '../models/brand';
 import HttpError from '../lib/http-error';
 import paginateQuery from '../lib/paginate-query';
 import { AuthorizedRequest } from 'middlewares/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 import { app } from '../config/firebase';
 import { v4 as uuid } from 'uuid';
 
@@ -171,6 +181,170 @@ export const addProduct = async (
     response
       .status(201)
       .json({ message: 'Product added successfully', data: product });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const updateProduct = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idOrSlug } = request.params;
+
+    const isValidId = mongoose.isValidObjectId(idOrSlug);
+
+    const product = isValidId
+      ? await Product.findById(idOrSlug)
+      : await Product.findOne({ slug: idOrSlug });
+
+    if (!product) {
+      throw new HttpError('Product does not exist', 404);
+    }
+
+    const data = validateSchema<z.infer<typeof productUpdateSchema>>(
+      request.body,
+      productUpdateSchema
+    );
+
+    if (Object.keys(data).length === 0) {
+      throw new HttpError('No field to be updated was supplied', 400);
+    }
+
+    const {
+      name,
+      brand,
+      description,
+      category,
+      image,
+      price,
+      stock,
+      is_featured,
+      is_archived,
+    } = data;
+
+    if (name) {
+      // ? throw error if new name is the same as previous name..?
+      product.name = name;
+    }
+
+    if (brand) {
+      const isBrandValidId = mongoose.isValidObjectId(brand);
+
+      const brandExists = isBrandValidId
+        ? await Brand.findById(brand).lean()
+        : await Brand.findOne({ name: brand }).lean();
+
+      if (!brandExists) {
+        throw new HttpError('The specified brand does not exist', 404);
+      }
+
+      product.brand = brandExists._id as mongoose.Types.ObjectId;
+    }
+
+    if (description) {
+      // ? throw error if new description is the same as previous description..?
+      product.description = description;
+    }
+
+    if (category) {
+      // ? throw error if new category is the same as previous category..?
+      product.category = category;
+    }
+
+    const previous_image_url = product.image;
+
+    if (image) {
+      const storage = getStorage(app);
+      const storageRef = ref(
+        storage,
+        `images/products/${image.name}-${uuid()}`
+      );
+      const snapshot = await uploadBytes(storageRef, image);
+      const image_url = await getDownloadURL(snapshot.ref);
+
+      product.image = image_url;
+    }
+
+    if (price) {
+      // ? throw error if new price is the same as previous price..?
+      product.price = price;
+    }
+
+    if (stock) {
+      // ? throw error if new stock is the same as previous stock..?
+      product.stock = stock;
+    }
+
+    if (is_featured) {
+      // ? throw error if new is_featured is the same as previous is_featured..?
+      product.is_featured = is_featured === 'true' ? true : false;
+    }
+
+    if (is_archived) {
+      // ? throw error if new is_archived is the same as previous is_archived..?
+      product.is_archived = is_archived === 'true' ? true : false;
+    }
+
+    await product.save();
+
+    // delete previous product image from url if new image is uploaded
+    if (image) {
+      const storage = getStorage(app);
+
+      // Extract the file path from the full image URL
+      const decodedUrl = decodeURIComponent(previous_image_url);
+      const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+
+      const previousProfileImageRef = ref(storage, filePath);
+      await deleteObject(previousProfileImageRef);
+    }
+
+    const updated_product = await Product.findById(product._id).lean();
+
+    response.json({
+      message: 'Product updated successfully',
+      data: updated_product,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const deleteProduct = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idOrSlug } = request.params;
+
+    const isValidId = mongoose.isValidObjectId(idOrSlug);
+
+    const product = isValidId
+      ? await Product.findById(idOrSlug)
+      : await Product.findOne({ slug: idOrSlug });
+
+    if (!product) {
+      throw new HttpError('Product does not exist', 404);
+    }
+
+    const previous_image_url = product.image;
+
+    await product.deleteOne();
+
+    const storage = getStorage(app);
+
+    // Extract the file path from the full image URL
+    const decodedUrl = decodeURIComponent(previous_image_url);
+    const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+
+    const previousProfileImageRef = ref(storage, filePath);
+    await deleteObject(previousProfileImageRef);
+
+    response.json({ message: 'Product deleted successfully' });
   } catch (error: any) {
     next(error);
   }
