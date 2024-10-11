@@ -6,6 +6,7 @@ import {
   getProductByIdOrSlug,
   getAvailableProducts,
   getRandomAvailableProducts,
+  getRelatedProducts,
   getAllProducts,
   updateProduct,
 } from '../controllers/products';
@@ -18,6 +19,7 @@ router.get('/random', getRandomAvailableProducts);
 router.get('/all', authorizeRequest, getAllProducts);
 router.get('/:idOrSlug', getAvailableProductByIdOrSlug);
 router.get('/:idOrSlug/all', authorizeRequest, getProductByIdOrSlug);
+router.get('/:idOrSlug/related', getRelatedProducts);
 router.post('/', authorizeRequest, addProduct);
 router.put('/:idOrSlug', authorizeRequest, updateProduct);
 router.delete('/:idOrSlug', authorizeRequest, deleteProduct);

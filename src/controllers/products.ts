@@ -4,6 +4,7 @@ import {
   addProductSchema,
   getProductsFilterSchema,
   getRadomProductsFilterSchema,
+  getRelatedProductsFilterSchema,
   productUpdateSchema,
 } from '../schemas/product';
 import z from 'zod';
@@ -167,7 +168,11 @@ export const getRandomAvailableProducts = async (
 
     const products = await Product.aggregate([
       {
-        $match: { ...filter, is_archived: false, _id: { $ne: exclude || '' } },
+        $match: {
+          ...filter,
+          is_archived: false,
+          ...(exclude && { _id: { $ne: exclude } }),
+        },
       },
       { $sample: { size: limitNumber } },
       sort_by &&
@@ -296,6 +301,73 @@ export const getProductByIdOrSlug = async (
     }
 
     response.json(product);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getRelatedProducts = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idOrSlug } = request.params;
+
+    const isValidId = mongoose.isValidObjectId(idOrSlug);
+
+    const product = isValidId
+      ? await Product.findOne({ _id: idOrSlug, is_archived: false }).lean()
+      : await Product.findOne({ slug: idOrSlug, is_archived: false }).lean();
+
+    if (!product) {
+      throw new HttpError('Product does not exist or is archived', 404);
+    }
+
+    const data = validateSchema<z.infer<typeof getRelatedProductsFilterSchema>>(
+      request.query,
+      getRelatedProductsFilterSchema
+    );
+
+    const { price_range, is_featured, limit, sort_by, sort_order } = data;
+
+    const filter: GetProductsFilter = {};
+
+    if (price_range) {
+      const [min_price, max_price] = price_range.split('-').map(Number);
+      filter.price = { $gte: min_price, $lte: max_price };
+    }
+
+    if (is_featured) {
+      filter.is_featured = is_featured === 'true' ? true : false;
+    }
+
+    // set max limit to 50
+    const limitNumber = !limit
+      ? 20
+      : +limit > 50
+      ? 50
+      : Math.ceil(+limit) <= 0
+      ? 20
+      : Math.ceil(+limit);
+
+    const products = await Product.aggregate([
+      {
+        $match: {
+          ...filter,
+          is_archived: false,
+          _id: { $ne: product._id },
+          $or: [{ brand: product.brand }, { category: product.category }],
+        },
+      },
+      { $sample: { size: limitNumber } },
+      sort_by &&
+        sort_order && {
+          $sort: { [sort_by]: sort_order === 'ascending' ? 1 : -1 },
+        },
+    ]);
+
+    response.json(products);
   } catch (error: any) {
     next(error);
   }

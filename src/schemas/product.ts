@@ -78,6 +78,25 @@ export const getRadomProductsFilterSchema = z
     message: `Sorting order isn't specified`,
   });
 
+export const getRelatedProductsFilterSchema = z
+  .object({
+    price_range: z
+      .string()
+      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
+      .optional(),
+    is_featured: z.enum(['true', 'false']).optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+    sort_by: z.enum(['name', 'price']).optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
