@@ -40,6 +40,44 @@ export const getProductsFilterSchema = z
     message: `Sorting order isn't specified`,
   });
 
+export const getRadomProductsFilterSchema = z
+  .object({
+    brand: z.string().min(1, 'Product brand cannot be empty').optional(),
+    price_range: z
+      .string()
+      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
+      .optional(),
+    category: z
+      .enum([
+        'smartphones',
+        'tablets',
+        'laptops',
+        'headphones',
+        'speakers',
+        'smartwatches',
+        'gaming-consoles',
+      ])
+      .optional(),
+    is_featured: z.enum(['true', 'false']).optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+    exclude: z
+      .string()
+      .refine(
+        (value) => mongoose.isValidObjectId(value),
+        'Invalid product ID passed to exclude'
+      )
+      .optional(),
+    sort_by: z.enum(['name', 'price']).optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',

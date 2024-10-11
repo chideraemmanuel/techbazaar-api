@@ -3,6 +3,7 @@ import validateSchema from '../lib/validate-schema';
 import {
   addProductSchema,
   getProductsFilterSchema,
+  getRadomProductsFilterSchema,
   productUpdateSchema,
 } from '../schemas/product';
 import z from 'zod';
@@ -11,7 +12,7 @@ import Product, { ProductCategory } from '../models/product';
 import Brand from '../models/brand';
 import HttpError from '../lib/http-error';
 import paginateQuery from '../lib/paginate-query';
-import { AuthorizedRequest } from 'middlewares/auth';
+import { AuthorizedRequest } from '../middlewares/auth';
 import {
   getStorage,
   ref,
@@ -24,7 +25,7 @@ import { v4 as uuid } from 'uuid';
 
 interface GetProductsFilter {
   name?: { $regex: string; $options: 'i' };
-  brand?: string | mongoose.Types.ObjectId;
+  brand?: mongoose.Types.ObjectId;
   price?: {
     $gte: number;
     $lte: number;
@@ -33,8 +34,156 @@ interface GetProductsFilter {
   is_featured?: boolean;
 }
 
-export const getProducts = async (
+export const getAvailableProducts = async (
   request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = validateSchema<z.infer<typeof getProductsFilterSchema>>(
+      request.query,
+      getProductsFilterSchema
+    );
+
+    const {
+      search_query,
+      brand,
+      price_range,
+      category,
+      is_featured,
+      page,
+      limit,
+      sort_by,
+      sort_order,
+    } = data;
+
+    const filter: GetProductsFilter = {};
+
+    if (search_query) {
+      filter.name = { $regex: search_query, $options: 'i' };
+    }
+
+    if (brand) {
+      const isValidId = mongoose.isValidObjectId(brand);
+
+      const brandExists = isValidId
+        ? await Brand.findById(brand)
+        : await Brand.findOne({ name: brand });
+
+      if (!brandExists) {
+        throw new HttpError('The specified brand does not exist', 404);
+      }
+
+      filter.brand = brandExists._id as mongoose.Types.ObjectId;
+    }
+
+    if (price_range) {
+      const [min_price, max_price] = price_range.split('-').map(Number);
+      filter.price = { $gte: min_price, $lte: max_price };
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    if (is_featured) {
+      filter.is_featured = is_featured === 'true' ? true : false;
+    }
+
+    const paginationResult = await paginateQuery({
+      model: Product,
+      filter: { ...filter, is_archived: false },
+      page: +page,
+      limit: +limit,
+      sort_by,
+      sort_order,
+    });
+
+    response.json(paginationResult);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getRandomAvailableProducts = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = validateSchema<z.infer<typeof getRadomProductsFilterSchema>>(
+      request.query,
+      getRadomProductsFilterSchema
+    );
+
+    const {
+      brand,
+      price_range,
+      category,
+      is_featured,
+      limit,
+      exclude,
+      sort_by,
+      sort_order,
+    } = data;
+
+    const filter: GetProductsFilter = {};
+
+    if (brand) {
+      const isValidId = mongoose.isValidObjectId(brand);
+
+      const brandExists = isValidId
+        ? await Brand.findById(brand)
+        : await Brand.findOne({ name: brand });
+
+      if (!brandExists) {
+        throw new HttpError('The specified brand does not exist', 404);
+      }
+
+      filter.brand = brandExists._id as mongoose.Types.ObjectId;
+    }
+
+    if (price_range) {
+      const [min_price, max_price] = price_range.split('-').map(Number);
+      filter.price = { $gte: min_price, $lte: max_price };
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    if (is_featured) {
+      filter.is_featured = is_featured === 'true' ? true : false;
+    }
+
+    // set max limit to 50
+    const limitNumber = !limit
+      ? 20
+      : +limit > 50
+      ? 50
+      : Math.ceil(+limit) <= 0
+      ? 20
+      : Math.ceil(+limit);
+
+    const products = await Product.aggregate([
+      {
+        $match: { ...filter, is_archived: false, _id: { $ne: exclude || '' } },
+      },
+      { $sample: { size: limitNumber } },
+      sort_by &&
+        sort_order && {
+          $sort: { [sort_by]: sort_order === 'ascending' ? 1 : -1 },
+        },
+    ]);
+
+    response.json(products);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getAllProducts = async (
+  request: AuthorizedRequest,
   response: Response,
   next: NextFunction
 ) => {
@@ -104,8 +253,32 @@ export const getProducts = async (
   }
 };
 
-export const getProductByIdOrSlug = async (
+export const getAvailableProductByIdOrSlug = async (
   request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idOrSlug } = request.params;
+
+    const isValidId = mongoose.isValidObjectId(idOrSlug);
+
+    const product = isValidId
+      ? await Product.findOne({ _id: idOrSlug, is_archived: false }).lean()
+      : await Product.findOne({ slug: idOrSlug, is_archived: false }).lean();
+
+    if (!product) {
+      throw new HttpError('Product does not exist or is archived', 404);
+    }
+
+    response.json(product);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getProductByIdOrSlug = async (
+  request: AuthorizedRequest,
   response: Response,
   next: NextFunction
 ) => {
