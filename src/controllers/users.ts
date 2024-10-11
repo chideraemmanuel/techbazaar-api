@@ -44,6 +44,9 @@ export const registerUser = async (
       auth_type: 'manual',
     });
 
+    const new_user_return = { ...new_user };
+    delete new_user_return['password'];
+
     const OTP = generateOTP();
 
     await EmailVerification.create({
@@ -74,7 +77,7 @@ export const registerUser = async (
       })
       .json({
         message: `Account created successfully. Email verification OTP has been sent to ${email}`,
-        data: new_user,
+        data: new_user_return,
       });
   } catch (error: any) {
     next(error);
@@ -121,13 +124,13 @@ export const loginUser = async (
       session_id,
     });
 
-    // function removeField<T extends object, K extends keyof T>(
-    //   obj: T,
+    // function removeFieldFromObject<T extends object, K extends keyof T>(
+    //   object: T,
     //   field: K
     // ): Omit<T, K> {
-    //   const newObj = { ...obj }; // Create a shallow copy of the object
-    //   delete newObj[field]; // Remove the specified field
-    //   return newObj; // Return the new object without the field
+    //   const newObject = { ...object }; // Create a shallow copy of the object
+    //   delete newObject[field]; // Remove the specified field
+    //   return newObject; // Return the new object without the field
     // }
 
     const user_return = { ...user };
@@ -185,7 +188,7 @@ export const verifyEmail = async (
 
     const { email, OTP } = data;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).lean();
 
     if (!user) {
       throw new HttpError('No user with the supplied email address', 404);
@@ -220,7 +223,7 @@ export const verifyEmail = async (
 
     // TODO: send welcome email..?
 
-    response.json({ message: 'Email verified successfully' });
+    response.json({ message: 'Email verified successfully', data: user });
   } catch (error: any) {
     next(error);
   }

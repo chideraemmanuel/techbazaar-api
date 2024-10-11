@@ -5,13 +5,8 @@ import HttpError from './http-error';
  *
  * @param data the data to be valiated
  * @param schema the schema to use for the validation
- * @returns
+ * @returns a type-safe validated data
  */
-// const validateSchema = (data: any, schema: ZodSchema) => {
-//   return schema.safeParse(data);
-// };
-
-// export default validateSchema;
 
 const validateSchema = <T>(data: any, schema: ZodSchema): T => {
   const { success, error, data: validated_data } = schema.safeParse(data);
