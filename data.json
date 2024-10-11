@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Galaxy Z Fold 5",
+    "brand": "64b7a0f0cd5a5b00249f842a",
+    "description": "The Galaxy Z Fold 5 redefines the smartphone experience with its foldable design and powerful performance.",
+    "category": "smartphones",
+    "image": "https://example.com/images/galaxy-z-fold-5.jpg",
+    "price": 1799,
+    "stock": 15,
+    "is_featured": true,
+    "is_archived": false
+  },
+  {
+    "name": "iPad Pro 12.9",
+    "brand": "64b7a0f0cd5a5b00249f842b",
+    "description": "The iPad Pro 12.9 offers a powerful M1 chip, Liquid Retina XDR display, and 5G connectivity.",
+    "category": "tablets",
+    "image": "https://example.com/images/ipad-pro-12-9.jpg",
+    "price": 1099,
+    "stock": 25,
+    "is_featured": false,
+    "is_archived": false
+  },
+  {
+    "name": "MacBook Air M2",
+    "brand": "64b7a0f0cd5a5b00249f842c",
+    "description": "The MacBook Air M2 is an ultra-thin and lightweight laptop with the powerful M2 chip for seamless performance.",
+    "category": "laptops",
+    "image": "https://example.com/images/macbook-air-m2.jpg",
+    "price": 1199,
+    "stock": 10,
+    "is_featured": true,
+    "is_archived": false
+  },
+  {
+    "name": "Sony WH-1000XM5",
+    "brand": "64b7a0f0cd5a5b00249f842d",
+    "description": "Sony’s WH-1000XM5 offers industry-leading noise cancellation and premium sound quality.",
+    "category": "headphones",
+    "image": "https://example.com/images/sony-wh-1000xm5.jpg",
+    "price": 349,
+    "stock": 40,
+    "is_featured": false,
+    "is_archived": false
+  },
+  {
+    "name": "Bose SoundLink Revolve",
+    "brand": "64b7a0f0cd5a5b00249f842e",
+    "description": "The Bose SoundLink Revolve is a portable Bluetooth speaker delivering 360° sound.",
+    "category": "speakers",
+    "image": "https://example.com/images/bose-soundlink-revolve.jpg",
+    "price": 199,
+    "stock": 20,
+    "is_featured": true,
+    "is_archived": false
+  },
+  {
+    "name": "Apple Watch Series 8",
+    "brand": "64b7a0f0cd5a5b00249f842b",
+    "description": "The Apple Watch Series 8 offers health and fitness tracking with a durable, water-resistant design.",
+    "category": "smartwatches",
+    "image": "https://example.com/images/apple-watch-series-8.jpg",
+    "price": 399,
+    "stock": 30,
+    "is_featured": false,
+    "is_archived": false
+  },
+  {
+    "name": "PlayStation 5",
+    "brand": "64b7a0f0cd5a5b00249f842f",
+    "description": "The PlayStation 5 delivers breathtaking gaming experiences with lightning-fast load times and 4K gaming.",
+    "category": "gaming-consoles",
+    "image": "https://example.com/images/ps5.jpg",
+    "price": 499,
+    "stock": 5,
+    "is_featured": true,
+    "is_archived": false
+  },
+  {
+    "name": "Surface Pro 9",
+    "brand": "64b7a0f0cd5a5b00249f842c",
+    "description": "The Microsoft Surface Pro 9 is a versatile tablet-laptop hybrid, perfect for productivity on the go.",
+    "category": "tablets",
+    "image": "https://example.com/images/surface-pro-9.jpg",
+    "price": 999,
+    "stock": 12,
+    "is_featured": false,
+    "is_archived": false
+  },
+  {
+    "name": "Dell XPS 13",
+    "brand": "64b7a0f0cd5a5b00249f8430",
+    "description": "The Dell XPS 13 is an ultraportable laptop with a stunning 4K display and top-notch performance.",
+    "category": "laptops",
+    "image": "https://example.com/images/dell-xps-13.jpg",
+    "price": 1299,
+    "stock": 8,
+    "is_featured": true,
+    "is_archived": false
+  },
+  {
+    "name": "Google Pixel 7",
+    "brand": "64b7a0f0cd5a5b00249f8431",
+    "description": "The Google Pixel 7 offers an exceptional camera, clean Android experience, and powerful AI features.",
+    "category": "smartphones",
+    "image": "https://example.com/images/pixel-7.jpg",
+    "price": 799,
+    "stock": 22,
+    "is_featured": false,
+    "is_archived": false
+  }
+]

@@ -10,7 +10,7 @@ export interface PasswordResetSchemaInterface extends Document {
 const passwordResetSchema: Schema<PasswordResetSchemaInterface> = new Schema(
   {
     user: {
-      type: mongoose.SchemaTypes.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },

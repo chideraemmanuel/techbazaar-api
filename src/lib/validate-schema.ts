@@ -18,8 +18,10 @@ const validateSchema = <T>(data: any, schema: ZodSchema): T => {
 
   if (!success) {
     console.log('error.format()._errors', error.format()._errors);
+    console.log(' error.flatten().fieldErrors', error.flatten().fieldErrors);
 
-    throw new HttpError(error.format()._errors[0], 400);
+    // @ts-ignore
+    throw new HttpError(Object.values(error.flatten().fieldErrors)[0], 400);
   }
 
   return validated_data;

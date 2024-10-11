@@ -65,7 +65,7 @@ export const registerUser = async (
       session_id,
     });
 
-    return response
+    response
       .status(201)
       .cookie('session_id', session_id, {
         maxAge: 60 * 60 * 24, // 24 hours
@@ -94,7 +94,7 @@ export const loginUser = async (
 
     const { email, password } = data;
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password').lean();
 
     if (!user) {
       throw new HttpError('No user with the supplied email address', 404);
@@ -121,7 +121,19 @@ export const loginUser = async (
       session_id,
     });
 
-    return response
+    // function removeField<T extends object, K extends keyof T>(
+    //   obj: T,
+    //   field: K
+    // ): Omit<T, K> {
+    //   const newObj = { ...obj }; // Create a shallow copy of the object
+    //   delete newObj[field]; // Remove the specified field
+    //   return newObj; // Return the new object without the field
+    // }
+
+    const user_return = { ...user };
+    delete user_return['password'];
+
+    response
       .status(201)
       .cookie('session_id', session_id, {
         maxAge: 60 * 60 * 24, // 24 hours
@@ -130,7 +142,8 @@ export const loginUser = async (
       })
       .json({
         message: `Login successful.`,
-        data: { ...user, password: null },
+        // data: { ...user, password: null },
+        data: user_return,
       });
   } catch (error: any) {
     next(error);
@@ -151,7 +164,7 @@ export const logoutUser = async (
 
     await Session.deleteOne({ session_id });
 
-    return response
+    response
       .cookie('session_id', '', { maxAge: 0 })
       .json({ message: 'Logout successful' });
   } catch (error: any) {
@@ -207,7 +220,7 @@ export const verifyEmail = async (
 
     // TODO: send welcome email..?
 
-    return response.json({ message: 'Email verified successfully' });
+    response.json({ message: 'Email verified successfully' });
   } catch (error: any) {
     next(error);
   }
@@ -251,7 +264,7 @@ export const resendOTP = async (
       html: `Use this OTP to complete your registration; ${OTP}`,
     });
 
-    return response
+    response
       .status(201)
       .json({ message: `Email verification OTP has been resent to ${email}` });
   } catch (error: any) {
@@ -304,7 +317,7 @@ export const requestPasswordReset = async (
       html: `Use this OTP to reset your password; ${OTP}`,
     });
 
-    return response
+    response
       .status(201)
       .json({ message: `Password reset OTP has been sent to ${email}` });
   } catch (error: any) {
@@ -365,7 +378,7 @@ export const completePasswordReset = async (
     await passwordResetRecord.deleteOne();
     // await PasswordReset.deleteOne({ user: user._id });
 
-    return response.json({ message: 'Password reset successfully' });
+    response.json({ message: 'Password reset successfully' });
   } catch (error: any) {
     next(error);
   }

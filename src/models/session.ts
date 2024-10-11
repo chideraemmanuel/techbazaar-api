@@ -9,7 +9,7 @@ export interface SessionSchemaInterface extends Document {
 const sessionSchema: Schema<SessionSchemaInterface> = new Schema(
   {
     user: {
-      type: mongoose.SchemaTypes.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },

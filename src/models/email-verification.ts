@@ -11,7 +11,7 @@ const emailVerificationSchema: Schema<EmailVerificationSchemaInterface> =
   new Schema(
     {
       user: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
       },
