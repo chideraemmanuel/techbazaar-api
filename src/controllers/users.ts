@@ -202,3 +202,167 @@ export const removeItemFromCart = async (
     next(error);
   }
 };
+
+export const incrementCartItemQuantity = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const { cartItemId } = request.params;
+
+    if (!mongoose.isValidObjectId(cartItemId)) {
+      throw new HttpError('Invalid cart item ID', 400);
+    }
+
+    const cart_item = await Cart.findOne({
+      _id: cartItemId,
+      user: user._id,
+    });
+    // .populate('product');
+
+    if (!cart_item) {
+      throw new HttpError(
+        `Cart item with the provided ID does not exist or has been removed from cart`,
+        400
+      );
+    }
+
+    const product = await Product.findById(cart_item.product);
+
+    if (!product) {
+      await cart_item.deleteOne();
+
+      throw new HttpError(
+        'Product with the provided ID does not exist or has been deleted',
+        404
+      );
+    }
+
+    if (product.is_archived || product.stock === 0) {
+      throw new HttpError(
+        'Product with the provided ID is unavailable or out of stock',
+        400
+      );
+    }
+
+    if (cart_item.quantity === product.stock) {
+      throw new HttpError(
+        'Cart item quantity cannot exceed the number of items in stock',
+        400
+      );
+    }
+
+    cart_item.quantity += 1;
+    const updated_cart_item = await cart_item.save();
+
+    response.json({
+      message: 'Item quantity incremented successfully',
+      data: updated_cart_item,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const decrementCartItemQuantity = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const { cartItemId } = request.params;
+
+    if (!mongoose.isValidObjectId(cartItemId)) {
+      throw new HttpError('Invalid cart item ID', 400);
+    }
+
+    const cart_item = await Cart.findOne({
+      _id: cartItemId,
+      user: user._id,
+    });
+    // .populate('product');
+
+    if (!cart_item) {
+      throw new HttpError(
+        `Cart item with the provided ID does not exist or has been removed from cart`,
+        400
+      );
+    }
+
+    const product = await Product.findById(cart_item.product);
+
+    if (!product) {
+      await cart_item.deleteOne();
+
+      throw new HttpError(
+        'Product with the provided ID does not exist or has been deleted',
+        404
+      );
+    }
+
+    if (product.is_archived || product.stock === 0) {
+      throw new HttpError(
+        'Product with the provided ID is unavailable or out of stock',
+        400
+      );
+    }
+
+    if (cart_item.quantity === 1) {
+      await cart_item.deleteOne();
+
+      response.json({
+        message: 'Item quantity decremented successfully',
+      });
+    }
+
+    cart_item.quantity -= 1;
+    const updated_cart_item = await cart_item.save();
+
+    response.json({
+      message: 'Item quantity decremented successfully',
+      data: updated_cart_item,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const clearCurrentUserCart = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const delete_response = await Cart.deleteMany({ user: user._id });
+
+    if (delete_response.deletedCount === 0) {
+      throw new HttpError('No items in cart', 400);
+    }
+
+    response.json({ message: 'Cart cleared successfully' });
+  } catch (error: any) {
+    next(error);
+  }
+};

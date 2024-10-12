@@ -2,8 +2,11 @@ import { Router } from 'express';
 import { authenticateRequest, verifyRequest } from '../middlewares/auth';
 import {
   addItemToCart,
+  clearCurrentUserCart,
+  decrementCartItemQuantity,
   getCurrentUser,
   getCurrentUserCart,
+  incrementCartItemQuantity,
   removeItemFromCart,
   updateCurrentUser,
 } from '../controllers/users';
@@ -59,16 +62,27 @@ router.delete(
 router.put(
   '/me/cart/:cartItemId/increment',
   authenticateRequest,
-  verifyRequest
+  verifyRequest,
+  incrementCartItemQuantity
 );
 /**
  * decrement item, currently signed in user (verified users only)
  */
-router.put('/me/cart/:cartItemId/decrement');
+router.put(
+  '/me/cart/:cartItemId/decrement',
+  authenticateRequest,
+  verifyRequest,
+  decrementCartItemQuantity
+);
 /**
  * clear cart, currently signed in user (verified users only)
  */
-router.delete('/me/cart');
+router.delete(
+  '/me/cart',
+  authenticateRequest,
+  verifyRequest,
+  clearCurrentUserCart
+);
 // =============================================================================
 
 /**
