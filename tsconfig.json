@@ -3,6 +3,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "baseUrl": "src",
+    // "lib": ["es2021"],
+    "lib": ["esnext"],
     "outDir": "./dist",
     "sourceMap": true,
     "noImplicitAny": true

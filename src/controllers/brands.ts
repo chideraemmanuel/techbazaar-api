@@ -10,7 +10,7 @@ import paginateQuery from '../lib/paginate-query';
 import Brand from '../models/brand';
 import mongoose from 'mongoose';
 import HttpError from '../lib/http-error';
-import { AuthorizedRequest } from 'middlewares/auth';
+import { AuthorizedRequest } from '../middlewares/auth';
 import {
   deleteObject,
   getDownloadURL,
@@ -18,7 +18,7 @@ import {
   ref,
   uploadBytes,
 } from 'firebase/storage';
-import { app } from 'config/firebase';
+import { app } from '../config/firebase';
 import { v4 as uuid } from 'uuid';
 
 interface GetBrandsFilter {
@@ -178,25 +178,25 @@ export const updateBrand = async (
       brand.logo = logo_url;
     }
 
-    const updatedBrand = await brand.save();
+    const updated_brand = await brand.save();
 
-    console.log('updatedBrand', updatedBrand);
     console.log('brand after update', brand);
 
+    // TODO: figure out how to persist previous logo url in a variable and delete here
     // // delete previous brand logo from firebase if new logo is uploaded
     // if (brand.logo && logo) {
     //   const storage = getStorage(app);
 
     //   // Extract the file path from the full image URL
-    //   //   const decodedUrl = decodeURIComponent(previous_logo_url);
-    //   const decodedUrl = decodeURIComponent(brand.logo);
+    //     const decodedUrl = decodeURIComponent(previous_logo_url);
+    //   // const decodedUrl = decodeURIComponent(brand.logo);
     //   const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
     //   const previousBrandLogoRef = ref(storage, filePath);
     //   await deleteObject(previousBrandLogoRef);
     // }
 
-    const updated_brand = await Brand.findById(brand._id).lean();
+    // const updated_brand = await Brand.findById(brand._id).lean();
 
     response.json({
       message: 'Brand updated successfully',
@@ -227,19 +227,17 @@ export const deleteBrand = async (
 
     await brand.deleteOne();
 
-    console.log('brand after delete', brand);
+    if (brand.logo) {
+      const storage = getStorage(app);
 
-    // if (brand.logo) {
-    //   const storage = getStorage(app);
+      // Extract the file path from the full image URL
+      // const decodedUrl = decodeURIComponent(previous_logo_url);
+      const decodedUrl = decodeURIComponent(brand.logo);
+      const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
-    //   // Extract the file path from the full image URL
-    //   // const decodedUrl = decodeURIComponent(previous_logo_url);
-    //   const decodedUrl = decodeURIComponent(brand.logo);
-    //   const filePath = decodedUrl.split('/o/')[1].split('?')[0];
-
-    //   const previousProductImageRef = ref(storage, filePath);
-    //   await deleteObject(previousProductImageRef);
-    // }
+      const previousProductImageRef = ref(storage, filePath);
+      await deleteObject(previousProductImageRef);
+    }
 
     response.json({ message: 'Brand deleted successfully' });
   } catch (error: any) {

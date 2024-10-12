@@ -499,7 +499,7 @@ export const updateProduct = async (
       product.category = category;
     }
 
-    const previous_image_url = product.image;
+    // const previous_image_url = product.image;
 
     if (image) {
       const storage = getStorage(app);
@@ -533,21 +533,22 @@ export const updateProduct = async (
       product.is_archived = is_archived === 'true' ? true : false;
     }
 
-    await product.save();
+    const updated_product = await product.save();
 
-    // delete previous product image from firebase if new image is uploaded
-    if (image) {
-      const storage = getStorage(app);
+    // TODO: figure out how to persist previous logo url in a variable and delete here
+    // // delete previous product image from firebase if new image is uploaded
+    // if (image) {
+    //   const storage = getStorage(app);
 
-      // Extract the file path from the full image URL
-      const decodedUrl = decodeURIComponent(previous_image_url);
-      const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+    //   // Extract the file path from the full image URL
+    //   const decodedUrl = decodeURIComponent(previous_image_url);
+    //   const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
-      const previousProductImageRef = ref(storage, filePath);
-      await deleteObject(previousProductImageRef);
-    }
+    //   const previousProductImageRef = ref(storage, filePath);
+    //   await deleteObject(previousProductImageRef);
+    // }
 
-    const updated_product = await Product.findById(product._id).lean();
+    // const updated_product = await Product.findById(product._id).lean();
 
     response.json({
       message: 'Product updated successfully',
@@ -576,14 +577,15 @@ export const deleteProduct = async (
       throw new HttpError('Product does not exist', 404);
     }
 
-    const previous_image_url = product.image;
+    // const previous_image_url = product.image;
 
     await product.deleteOne();
 
     const storage = getStorage(app);
 
     // Extract the file path from the full image URL
-    const decodedUrl = decodeURIComponent(previous_image_url);
+    // const decodedUrl = decodeURIComponent(previous_image_url);
+    const decodedUrl = decodeURIComponent(product.image);
     const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
     const previousProductImageRef = ref(storage, filePath);

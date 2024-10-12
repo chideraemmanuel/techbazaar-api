@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpError from '../lib/http-error';
 import Session from '../models/session';
-import User, { UserSchemaInterface } from 'models/user';
+import User, { UserSchemaInterface } from '../models/user';
 
 export interface AuthenticatedRequest extends Request {
   user: UserSchemaInterface;
@@ -36,15 +36,34 @@ export const authenticateRequest = async (
       throw new HttpError('Unauthorized access', 401);
     }
 
-    if (user && !user.email_verified) {
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     if (user && user.disabled) {
       throw new HttpError('Unauthorized access', 401);
     }
 
     request.user = user;
+
+    next();
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+// ! should be used after `authenticateRequest`
+export const verifyRequest = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user) {
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    if (user && !user.email_verified) {
+      throw new HttpError('Unauthorized access', 401);
+    }
 
     next();
   } catch (error: any) {

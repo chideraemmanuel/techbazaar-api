@@ -16,3 +16,13 @@ export const NAME_REGEX = {
     } should be at least 3 characters long, and can only contain alphabets`;
   },
 };
+
+export const PRODUCT_CATEGORIES_ARRAY = [
+  'smartphones',
+  'tablets',
+  'laptops',
+  'headphones',
+  'speakers',
+  'smartwatches',
+  'gaming-consoles',
+];

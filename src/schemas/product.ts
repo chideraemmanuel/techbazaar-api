@@ -132,6 +132,7 @@ export const addProductSchema = z.object({
   ]),
   image: z
     .instanceof(File)
+    .refine((file) => file instanceof File, 'Image must be a file')
     .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
     .refine(
       (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
@@ -173,6 +174,7 @@ export const productUpdateSchema = z.object({
     .optional(),
   image: z
     .instanceof(File)
+    .refine((file) => file instanceof File, 'Image must be a file')
     .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
     .refine(
       (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
@@ -194,3 +196,8 @@ export const productUpdateSchema = z.object({
   is_featured: z.enum(['true', 'false']).optional(),
   is_archived: z.enum(['true', 'false']).optional(),
 });
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// (val) => ['Red', 'Green', 'Blue'].includes(val);
+// (val) => val instanceof CustomClass;
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

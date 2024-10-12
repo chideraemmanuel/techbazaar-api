@@ -110,6 +110,10 @@ export const loginUser = async (
       );
     }
 
+    if (user && user.disabled) {
+      throw new HttpError('Unauthorized access', 401);
+    }
+
     const passwordMatches = await bcrypt.compare(password, user.password);
 
     if (!passwordMatches) {
