@@ -7,7 +7,7 @@ import {
   requestPasswordReset,
   resendOTP,
   verifyEmail,
-} from '../controllers/users';
+} from '../controllers/auth';
 import { Router } from 'express';
 
 const router = Router();

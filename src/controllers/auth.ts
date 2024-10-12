@@ -13,7 +13,7 @@ import {
   userEmailVerificationSchema,
   userLoginSchema,
   userRegistrationSchema,
-} from '../schemas/user';
+} from '../schemas/auth';
 import validateSchema from '../lib/validate-schema';
 import z from 'zod';
 import bcrypt from 'bcrypt';
