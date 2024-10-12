@@ -596,3 +596,4 @@ export const deleteProduct = async (
     next(error);
   }
 };
+// TODO: delete cart items that have deleted product

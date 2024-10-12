@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { NAME_REGEX, PASSWORD_REGEX } from '../lib/constants';
 import z from 'zod';
 
@@ -27,4 +28,12 @@ export const updateCurrentUserSchema = z.object({
     .min(1, 'Password cannot be empty')
     .refine((value) => PASSWORD_REGEX.regex.test(value), PASSWORD_REGEX.hint)
     .optional(),
+});
+
+export const addItemToCartSchema = z.object({
+  product: z
+    .instanceof(mongoose.Types.ObjectId)
+    .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
+  // .string()
+  // .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
 });

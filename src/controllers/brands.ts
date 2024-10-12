@@ -244,3 +244,4 @@ export const deleteBrand = async (
     next(error);
   }
 };
+// TODO: delete products that have deleted brand

@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { authenticateRequest, verifyRequest } from '../middlewares/auth';
-import { getCurrentUser, updateCurrentUser } from '../controllers/users';
+import {
+  addItemToCart,
+  getCurrentUser,
+  getCurrentUserCart,
+  removeItemFromCart,
+  updateCurrentUser,
+} from '../controllers/users';
 
 const router = Router();
 
@@ -33,24 +39,32 @@ router.put('/:id'); //! not done
 /**
  * get the currently signed in user's cart (verified users only)
  */
-router.get('/me/cart');
+router.get('/me/cart', authenticateRequest, verifyRequest, getCurrentUserCart);
 /**
  * add to cart, currently signed in user (verified users only)
  */
-router.post('/me/cart');
+router.post('/me/cart', authenticateRequest, verifyRequest, addItemToCart);
 /**
  * remove from cart, currently signed in user (verified users only)
  */
-router.put('/me/cart');
+router.delete(
+  '/me/cart/:cartItemId',
+  authenticateRequest,
+  verifyRequest,
+  removeItemFromCart
+);
 /**
  * increment item, currently signed in user (verified users only)
  */
-router.put('/me/cart/increment');
+router.put(
+  '/me/cart/:cartItemId/increment',
+  authenticateRequest,
+  verifyRequest
+);
 /**
  * decrement item, currently signed in user (verified users only)
  */
-router.put('/me/cart/decrement');
-
+router.put('/me/cart/:cartItemId/decrement');
 /**
  * clear cart, currently signed in user (verified users only)
  */
