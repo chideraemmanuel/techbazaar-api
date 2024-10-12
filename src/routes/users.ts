@@ -1,4 +1,4 @@
-import { blockRequestIfActiveSession } from 'middlewares/auth';
+import { blockRequestIfActiveSession } from '../middlewares/auth';
 import {
   completePasswordReset,
   loginUser,

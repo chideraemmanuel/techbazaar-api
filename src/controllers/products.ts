@@ -535,7 +535,7 @@ export const updateProduct = async (
 
     await product.save();
 
-    // delete previous product image from url if new image is uploaded
+    // delete previous product image from firebase if new image is uploaded
     if (image) {
       const storage = getStorage(app);
 
@@ -543,8 +543,8 @@ export const updateProduct = async (
       const decodedUrl = decodeURIComponent(previous_image_url);
       const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
-      const previousProfileImageRef = ref(storage, filePath);
-      await deleteObject(previousProfileImageRef);
+      const previousProductImageRef = ref(storage, filePath);
+      await deleteObject(previousProductImageRef);
     }
 
     const updated_product = await Product.findById(product._id).lean();
@@ -586,8 +586,8 @@ export const deleteProduct = async (
     const decodedUrl = decodeURIComponent(previous_image_url);
     const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
-    const previousProfileImageRef = ref(storage, filePath);
-    await deleteObject(previousProfileImageRef);
+    const previousProductImageRef = ref(storage, filePath);
+    await deleteObject(previousProductImageRef);
 
     response.json({ message: 'Product deleted successfully' });
   } catch (error: any) {
