@@ -244,4 +244,5 @@ export const deleteBrand = async (
     next(error);
   }
 };
-// TODO: delete products that have deleted brand
+// ? TODO: delete products that have deleted brand
+// TODO: update brand to null on products that have the deleted brands

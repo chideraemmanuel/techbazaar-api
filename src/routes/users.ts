@@ -1,14 +1,21 @@
 import { Router } from 'express';
-import { authenticateRequest, verifyRequest } from '../middlewares/auth';
+import {
+  authenticateRequest,
+  authorizeRequest,
+  verifyRequest,
+} from '../middlewares/auth';
 import {
   addItemToCart,
   clearCurrentUserCart,
   decrementCartItemQuantity,
+  getAllUsers,
   getCurrentUser,
   getCurrentUserCart,
+  getUserById,
   incrementCartItemQuantity,
   removeItemFromCart,
   updateCurrentUser,
+  updateUserStatus,
 } from '../controllers/users';
 
 const router = Router();
@@ -16,7 +23,7 @@ const router = Router();
 /**
  * get all users (admin only)
  */
-router.get('/'); //! not done
+router.get('/', authorizeRequest, getAllUsers);
 // =============================================================================
 
 /**
@@ -26,7 +33,7 @@ router.get('/me', authenticateRequest, getCurrentUser);
 /**
  * get user by id (admin only)
  */
-router.get('/:id'); //! not done
+router.get('/:id', authorizeRequest, getUserById);
 // =============================================================================
 
 /**
@@ -34,9 +41,9 @@ router.get('/:id'); //! not done
  */
 router.put('/me', authenticateRequest, verifyRequest, updateCurrentUser);
 /**
- * update user details (admin only)
+ * update user status; role or disabled (admin only)
  */
-router.put('/:id'); //! not done
+router.put('/:id', authorizeRequest, updateUserStatus);
 // =============================================================================
 
 /**

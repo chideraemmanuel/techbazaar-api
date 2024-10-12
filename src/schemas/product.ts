@@ -1,3 +1,4 @@
+import { PRODUCT_CATEGORIES_ARRAY } from 'lib/constants';
 import mongoose from 'mongoose';
 import z from 'zod';
 
@@ -22,6 +23,10 @@ export const getProductsFilterSchema = z
         'smartwatches',
         'gaming-consoles',
       ])
+      .refine(
+        (value) => PRODUCT_CATEGORIES_ARRAY.includes(value),
+        'Invalid category'
+      )
       .optional(),
     is_featured: z.enum(['true', 'false']).optional(),
     page: z
@@ -57,6 +62,10 @@ export const getRadomProductsFilterSchema = z
         'smartwatches',
         'gaming-consoles',
       ])
+      .refine(
+        (value) => PRODUCT_CATEGORIES_ARRAY.includes(value),
+        'Invalid category'
+      )
       .optional(),
     is_featured: z.enum(['true', 'false']).optional(),
     limit: z
@@ -121,15 +130,20 @@ export const addProductSchema = z.object({
       required_error: 'Product description is required',
     })
     .min(1, 'Product description cannot be empty'),
-  category: z.enum([
-    'smartphones',
-    'tablets',
-    'laptops',
-    'headphones',
-    'speakers',
-    'smartwatches',
-    'gaming-consoles',
-  ]),
+  category: z
+    .enum([
+      'smartphones',
+      'tablets',
+      'laptops',
+      'headphones',
+      'speakers',
+      'smartwatches',
+      'gaming-consoles',
+    ])
+    .refine(
+      (value) => PRODUCT_CATEGORIES_ARRAY.includes(value),
+      'Invalid category'
+    ),
   image: z
     .instanceof(File)
     .refine((file) => file instanceof File, 'Image must be a file')
@@ -171,6 +185,10 @@ export const productUpdateSchema = z.object({
       'smartwatches',
       'gaming-consoles',
     ])
+    .refine(
+      (value) => PRODUCT_CATEGORIES_ARRAY.includes(value),
+      'Invalid category'
+    )
     .optional(),
   image: z
     .instanceof(File)
@@ -196,8 +214,3 @@ export const productUpdateSchema = z.object({
   is_featured: z.enum(['true', 'false']).optional(),
   is_archived: z.enum(['true', 'false']).optional(),
 });
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// (val) => ['Red', 'Green', 'Blue'].includes(val);
-// (val) => val instanceof CustomClass;
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

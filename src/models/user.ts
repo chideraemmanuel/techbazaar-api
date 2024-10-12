@@ -1,14 +1,17 @@
 import { Document, model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
+export type UserAuthType = 'manual' | 'google';
+export type UserRole = 'user' | 'admin';
+
 export interface UserSchemaInterface extends Document {
   first_name: string;
   last_name: string;
   email: string;
   password?: string;
   email_verified: boolean;
-  auth_type: 'manual' | 'google';
-  role: 'user' | 'admin';
+  auth_type: UserAuthType;
+  role: UserRole;
   disabled: boolean;
 }
 

@@ -37,3 +37,34 @@ export const addItemToCartSchema = z.object({
   // .string()
   // .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
 });
+
+export const getUsersFilterSchema = z
+  .object({
+    search_query: z
+      .string()
+      .min(1, 'Search query string cannot be empty')
+      .optional(),
+    email_verified: z.enum(['true', 'false']).optional(),
+    auth_type: z.enum(['manual', 'google']).optional(),
+    role: z.enum(['user', 'admin']).optional(),
+    disabled: z.enum(['true', 'false']).optional(),
+    page: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
+      .optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+    sort_by: z.enum(['first_name', 'last_name']).optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });
+
+export const updateUserStatusSchema = z.object({
+  role: z.enum(['user', 'admin']).optional(),
+  disabled: z.boolean().optional(),
+});

@@ -6,7 +6,8 @@ interface Params {
   filter?: any;
   page?: number;
   limit?: number;
-  sort_by?: 'name' | 'price';
+  // sort_by?: 'name' | 'price';
+  sort_by?: string;
   sort_order?: 'ascending' | 'descending';
 }
 

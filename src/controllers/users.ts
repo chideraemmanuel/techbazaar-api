@@ -2,11 +2,25 @@ import { NextFunction, Request, Response } from 'express';
 import { AuthenticatedRequest, AuthorizedRequest } from '../middlewares/auth';
 import HttpError from '../lib/http-error';
 import validateSchema from '../lib/validate-schema';
-import { addItemToCartSchema, updateCurrentUserSchema } from '../schemas/user';
+import {
+  addItemToCartSchema,
+  getUsersFilterSchema,
+  updateCurrentUserSchema,
+  updateUserStatusSchema,
+} from '../schemas/user';
 import z from 'zod';
 import Cart from '../models/cart';
 import Product from '../models/product';
 import mongoose from 'mongoose';
+import User, { UserAuthType, UserRole } from '../models/user';
+import paginateQuery from 'lib/paginate-query';
+
+interface GetUsersFilter {
+  email_verified?: boolean;
+  auth_type?: UserAuthType;
+  role?: UserRole;
+  disabled?: boolean;
+}
 
 export const getAllUsers = async (
   request: AuthorizedRequest,
@@ -14,7 +28,69 @@ export const getAllUsers = async (
   next: NextFunction
 ) => {
   try {
-    response.json({ message: 'Get all users!' });
+    const user = request.user;
+
+    if (!user || user.role !== 'admin') {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 403);
+    }
+
+    const data = validateSchema<z.infer<typeof getUsersFilterSchema>>(
+      request.query,
+      getUsersFilterSchema
+    );
+
+    const {
+      search_query,
+      email_verified,
+      auth_type,
+      role,
+      disabled,
+      page,
+      limit,
+      sort_by,
+      sort_order,
+    } = data;
+
+    const filter: GetUsersFilter = {};
+    let search;
+
+    if (search_query) {
+      search = {
+        $or: [
+          { first_name: { $regex: search_query, $option: 'i' } },
+          { last_name: { $regex: search_query, $option: 'i' } },
+          { email: { $regex: search_query, $option: 'i' } },
+        ],
+      };
+    }
+
+    if (email_verified) {
+      filter.email_verified = email_verified === 'true' ? true : false;
+    }
+
+    if (auth_type) {
+      filter.auth_type = auth_type;
+    }
+
+    if (role) {
+      filter.role = role;
+    }
+
+    if (disabled) {
+      filter.disabled = disabled === 'true' ? true : false;
+    }
+
+    const paginationResult = await paginateQuery({
+      model: User,
+      filter: { ...search, ...filter },
+      page: +page,
+      limit: +limit,
+      sort_by,
+      sort_order,
+    });
+
+    response.json(paginationResult);
   } catch (error: any) {
     next(error);
   }
@@ -27,7 +103,44 @@ export const getCurrentUser = async (
 ) => {
   try {
     const user = request.user;
+
+    if (!user) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
     response.json(user);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getUserById = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || user.role !== 'admin') {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 403);
+    }
+
+    const { id } = request.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      throw new HttpError('Invalid user ID', 400);
+    }
+
+    const userExists = await User.findById(id).lean();
+
+    if (!userExists) {
+      throw new HttpError('User not found', 404);
+    }
+
+    response.json(userExists);
   } catch (error: any) {
     next(error);
   }
@@ -76,6 +189,63 @@ export const updateCurrentUser = async (
 
     response.json({
       message: 'User profile updated successfully',
+      data: updated_user,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const updateUserStatus = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || user.role !== 'admin') {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 403);
+    }
+
+    const { id } = request.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      throw new HttpError('Invalid user ID', 400);
+    }
+
+    const userExists = await User.findById(id);
+
+    if (!userExists) {
+      throw new HttpError('User not found', 404);
+    }
+
+    const data = validateSchema<z.infer<typeof updateUserStatusSchema>>(
+      request.body,
+      updateUserStatusSchema
+    );
+
+    if (Object.keys(data).length === 0) {
+      throw new HttpError('No field to be updated was supplied', 400);
+    }
+
+    const { role, disabled } = data;
+
+    if (role) {
+      // ? throw error if new role is the same as previous role..?
+      userExists.role = role;
+    }
+
+    if (disabled) {
+      // ? throw error if new disabled status is the same as previous disabled status..?
+      userExists.disabled = disabled;
+    }
+
+    const updated_user = await userExists.save();
+
+    response.json({
+      message: 'User status updated successfully',
       data: updated_user,
     });
   } catch (error: any) {
