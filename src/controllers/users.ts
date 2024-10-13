@@ -10,7 +10,7 @@ import {
   placeOrderSchema,
   updateCurrentUserSchema,
   updateUserStatusSchema,
-} from '../schemas/user';
+} from '../schemas/users';
 import z from 'zod';
 import Cart from '../models/cart';
 import Product from '../models/product';

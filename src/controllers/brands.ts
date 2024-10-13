@@ -4,7 +4,7 @@ import {
   addBrandSchema,
   brandUpdateSchema,
   getBrandsFilterSchema,
-} from '../schemas/brand';
+} from '../schemas/brands';
 import z from 'zod';
 import paginateQuery from '../lib/paginate-query';
 import Brand from '../models/brand';

@@ -6,7 +6,7 @@ import {
   getRadomProductsFilterSchema,
   getRelatedProductsFilterSchema,
   productUpdateSchema,
-} from '../schemas/product';
+} from '../schemas/products';
 import z from 'zod';
 import mongoose from 'mongoose';
 import Product, { ProductCategory } from '../models/product';
@@ -80,6 +80,14 @@ export const getAvailableProducts = async (
 
     if (price_range) {
       const [min_price, max_price] = price_range.split('-').map(Number);
+
+      if (min_price > max_price) {
+        throw new HttpError(
+          'Minimum price cannot be greater than maximum price in price range',
+          400
+        );
+      }
+
       filter.price = { $gte: min_price, $lte: max_price };
     }
 
@@ -146,6 +154,14 @@ export const getRandomAvailableProducts = async (
 
     if (price_range) {
       const [min_price, max_price] = price_range.split('-').map(Number);
+
+      if (min_price > max_price) {
+        throw new HttpError(
+          'Minimum price cannot be greater than maximum price in price range',
+          400
+        );
+      }
+
       filter.price = { $gte: min_price, $lte: max_price };
     }
 
@@ -232,6 +248,14 @@ export const getAllProducts = async (
 
     if (price_range) {
       const [min_price, max_price] = price_range.split('-').map(Number);
+
+      if (min_price > max_price) {
+        throw new HttpError(
+          'Minimum price cannot be greater than maximum price in price range',
+          400
+        );
+      }
+
       filter.price = { $gte: min_price, $lte: max_price };
     }
 
@@ -335,6 +359,14 @@ export const getRelatedProducts = async (
 
     if (price_range) {
       const [min_price, max_price] = price_range.split('-').map(Number);
+
+      if (min_price > max_price) {
+        throw new HttpError(
+          'Minimum price cannot be greater than maximum price in price range',
+          400
+        );
+      }
+
       filter.price = { $gte: min_price, $lte: max_price };
     }
 

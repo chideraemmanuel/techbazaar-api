@@ -92,7 +92,7 @@ export const getUserOrdersFilterSchema = z
     status: z
       .enum(['pending', 'dispatched', 'shipped', 'delivered'])
       .optional(),
-    // date_range: z.string().optional(),
+    // date_range: z.string().optional(), // TODO: implement this..?
     page: z
       .string()
       .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
