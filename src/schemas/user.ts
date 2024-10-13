@@ -87,7 +87,7 @@ export const updateUserStatusSchema = z.object({
   disabled: z.boolean().optional(),
 });
 
-export const getCurrentUserOrdersFilterSchema = z
+export const getUserOrdersFilterSchema = z
   .object({
     status: z.enum(['pending', 'shipped', 'delivered']).optional(),
     // date_range: z.string().optional(),
@@ -99,7 +99,7 @@ export const getCurrentUserOrdersFilterSchema = z
       .string()
       .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
       .optional(),
-    sort_by: z.enum(['date_created']).optional(),
+    sort_by: z.enum(['date_created', 'date_updated']).optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
   .refine((data) => !data.sort_by || data.sort_order, {

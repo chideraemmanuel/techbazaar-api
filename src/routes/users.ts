@@ -14,6 +14,8 @@ import {
   getCurrentUserOrderById,
   getCurrentUserOrders,
   getUserById,
+  getUserOrderById,
+  getUserOrders,
   incrementCartItemQuantity,
   removeItemFromCart,
   updateCurrentUser,
@@ -35,7 +37,7 @@ router.get('/me', authenticateRequest, getCurrentUser);
 /**
  * get user by id (admin only)
  */
-router.get('/:id', authorizeRequest, getUserById);
+router.get('/:userId', authorizeRequest, getUserById);
 // =============================================================================
 
 /**
@@ -45,7 +47,7 @@ router.put('/me', authenticateRequest, verifyRequest, updateCurrentUser);
 /**
  * update user status; role or disabled (admin only)
  */
-router.put('/:id', authorizeRequest, updateUserStatus);
+router.put('/:userId', authorizeRequest, updateUserStatus);
 // =============================================================================
 
 /**
@@ -106,7 +108,7 @@ router.get(
 /**
  * get all of a particular user's orders (admin only)
  */
-router.get('/:id/orders');
+router.get('/:userId/orders', authorizeRequest, getUserOrders);
 // =============================================================================
 
 /**
@@ -121,7 +123,7 @@ router.get(
 /**
  * get a particular order of a particular user (admin only)
  */
-router.get('/:id/orders/:orderId');
+router.get('/:userId/orders/:orderId', authorizeRequest, getUserOrderById);
 // =============================================================================
 
 /**
@@ -134,7 +136,7 @@ router.post('/me/orders');
  * update (status) a particular order of a particular user (admin only)
  * ! redudant..?
  */
-router.put('/:id/orders/:orderId'); //
+router.put('/:userId/orders/:orderId'); //
 // =============================================================================
 
 /**
@@ -144,6 +146,6 @@ router.delete('/me/orders/:orderId');
 /**
  * cancel a particular order of a particular user (admin only)
  */
-router.delete('/:id/orders/:orderId');
+router.delete('/:userId/orders/:orderId');
 
 export default router;

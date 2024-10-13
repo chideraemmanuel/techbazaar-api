@@ -5,7 +5,7 @@ import validateSchema from '../lib/validate-schema';
 import {
   addItemToCartSchema,
   getCurrentUserCartFilterSchema,
-  getCurrentUserOrdersFilterSchema,
+  getUserOrdersFilterSchema,
   getUsersFilterSchema,
   updateCurrentUserSchema,
   updateUserStatusSchema,
@@ -131,13 +131,13 @@ export const getUserById = async (
       throw new HttpError('Unauthorized access', 403);
     }
 
-    const { id } = request.params;
+    const { userId } = request.params;
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!mongoose.isValidObjectId(userId)) {
       throw new HttpError('Invalid user ID', 400);
     }
 
-    const userExists = await User.findById(id).lean();
+    const userExists = await User.findById(userId).lean();
 
     if (!userExists) {
       throw new HttpError('User not found', 404);
@@ -212,13 +212,13 @@ export const updateUserStatus = async (
       throw new HttpError('Unauthorized access', 403);
     }
 
-    const { id } = request.params;
+    const { userId } = request.params;
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!mongoose.isValidObjectId(userId)) {
       throw new HttpError('Invalid user ID', 400);
     }
 
-    const userExists = await User.findById(id);
+    const userExists = await User.findById(userId);
 
     if (!userExists) {
       throw new HttpError('User not found', 404);
@@ -576,9 +576,10 @@ export const getCurrentUserOrders = async (
       throw new HttpError('Unauthorized access', 401);
     }
 
-    const data = validateSchema<
-      z.infer<typeof getCurrentUserOrdersFilterSchema>
-    >(request.query, getCurrentUserOrdersFilterSchema);
+    const data = validateSchema<z.infer<typeof getUserOrdersFilterSchema>>(
+      request.query,
+      getUserOrdersFilterSchema
+    );
 
     const { status, page, limit, sort_by, sort_order } = data;
 
@@ -593,7 +594,70 @@ export const getCurrentUserOrders = async (
       filter: { user: user._id, ...filter },
       page: +page,
       limit: +limit,
-      sort_by: sort_by === 'date_created' ? 'createdAt' : sort_by,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
+      sort_order,
+    });
+
+    response.json(paginationResult);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getUserOrders = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || user.role !== 'admin') {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 403);
+    }
+
+    const { userId } = request.params;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      throw new HttpError('Invalid user ID', 400);
+    }
+
+    const userExists = await User.findById(userId).lean();
+
+    if (!userExists) {
+      throw new HttpError('User not found', 404);
+    }
+
+    const data = validateSchema<z.infer<typeof getUserOrdersFilterSchema>>(
+      request.query,
+      getUserOrdersFilterSchema
+    );
+
+    const { status, page, limit, sort_by, sort_order } = data;
+
+    const filter: GetUserOrdersFilter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    const paginationResult = await paginateQuery({
+      model: Order,
+      filter: { user: userExists._id, ...filter },
+      page: +page,
+      limit: +limit,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
       sort_order,
     });
 
@@ -620,6 +684,50 @@ export const getCurrentUserOrderById = async (
 
     if (!mongoose.isValidObjectId(orderId)) {
       throw new HttpError('Invalid Order ID', 400);
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      throw new HttpError(
+        'Order with the provided ID does not exist or has been cancelled',
+        404
+      );
+    }
+
+    response.json(order);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getUserOrderById = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || user.role !== 'admin') {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 403);
+    }
+
+    const { userId, orderId } = request.params;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      throw new HttpError('Invalid user ID', 400);
+    }
+
+    if (!mongoose.isValidObjectId(orderId)) {
+      throw new HttpError('Invalid order ID', 400);
+    }
+
+    const userExists = await User.findById(userId).lean();
+
+    if (!userExists) {
+      throw new HttpError('User not found', 404);
     }
 
     const order = await Order.findById(orderId);
