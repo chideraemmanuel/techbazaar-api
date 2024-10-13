@@ -6,6 +6,7 @@ import {
 } from '../middlewares/auth';
 import {
   addItemToCart,
+  cancelOrder,
   clearCurrentUserCart,
   decrementCartItemQuantity,
   getAllUsers,
@@ -137,16 +138,16 @@ router.post('/me/orders', authenticateRequest, placeOrder);
  * update (status) a particular order of a particular user (admin only)
  * ! redudant..?
  */
-router.put('/:userId/orders/:orderId'); //
+router.put('/:userId/orders/:orderId'); // ! not done
 // =============================================================================
 
 /**
  * cancel a particular order of the currently signed in user (verified users only)
  */
-router.delete('/me/orders/:orderId');
+router.delete('/me/orders/:orderId', authenticateRequest, cancelOrder);
 /**
  * cancel a particular order of a particular user (admin only)
  */
-router.delete('/:userId/orders/:orderId');
+router.delete('/:userId/orders/:orderId'); // ! not done
 
 export default router;

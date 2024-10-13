@@ -23,6 +23,7 @@ import Order, {
   PopulatedOrderItem,
 } from '../models/order';
 import calculateSubTotal from '../lib/calculateSubTotal';
+import { read } from 'fs';
 
 interface GetUsersFilter {
   email_verified?: boolean;
@@ -814,6 +815,53 @@ export const placeOrder = async (
     response
       .status(201)
       .json({ message: 'Order placed successfully', data: order });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const cancelOrder = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || !user.email_verified) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const { orderId } = request.params;
+
+    if (!mongoose.isValidObjectId(orderId)) {
+      throw new HttpError('Invalid Order ID', 400);
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      throw new HttpError(
+        'Order with the provided ID does not exist or has been cancelled',
+        404
+      );
+    }
+
+    if (
+      order.status === 'shipped' ||
+      order.status === 'dispatched' ||
+      order.status === 'delivered'
+    ) {
+      throw new HttpError(
+        'Cannot cancel dispatched, shipped or delivered orders',
+        422
+      );
+    }
+
+    await order.deleteOne();
+
+    response.json({ message: 'Order cancelled successfully' });
   } catch (error: any) {
     next(error);
   }
