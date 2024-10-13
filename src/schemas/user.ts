@@ -30,6 +30,24 @@ export const updateCurrentUserSchema = z.object({
     .optional(),
 });
 
+export const getCurrentUserCartFilterSchema = z
+  .object({
+    page: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
+      .optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+    sort_by: z.enum(['date_created', 'date_updated']).optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });
+
 export const addItemToCartSchema = z.object({
   product: z
     .instanceof(mongoose.Types.ObjectId)
@@ -56,7 +74,7 @@ export const getUsersFilterSchema = z
       .string()
       .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
       .optional(),
-    sort_by: z.enum(['first_name', 'last_name']).optional(),
+    sort_by: z.enum(['first_name', 'last_name', 'email']).optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
   .refine((data) => !data.sort_by || data.sort_order, {
@@ -68,3 +86,23 @@ export const updateUserStatusSchema = z.object({
   role: z.enum(['user', 'admin']).optional(),
   disabled: z.boolean().optional(),
 });
+
+export const getCurrentUserOrdersFilterSchema = z
+  .object({
+    status: z.enum(['pending', 'shipped', 'delivered']).optional(),
+    // date_range: z.string().optional(),
+    page: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
+      .optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+    sort_by: z.enum(['date_created']).optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });

@@ -245,4 +245,4 @@ export const deleteBrand = async (
   }
 };
 // ? TODO: delete products that have deleted brand
-// TODO: update brand to null on products that have the deleted brands
+// TODO: implement soft delete, or update brand to null on products that have the deleted brands

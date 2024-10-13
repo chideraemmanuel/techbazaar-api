@@ -11,6 +11,8 @@ import {
   getAllUsers,
   getCurrentUser,
   getCurrentUserCart,
+  getCurrentUserOrderById,
+  getCurrentUserOrders,
   getUserById,
   incrementCartItemQuantity,
   removeItemFromCart,
@@ -95,7 +97,12 @@ router.delete(
 /**
  * get all of the currently signed in user's orders (verified users only)
  */
-router.get('/me/orders');
+router.get(
+  '/me/orders',
+  authenticateRequest,
+  verifyRequest,
+  getCurrentUserOrders
+);
 /**
  * get all of a particular user's orders (admin only)
  */
@@ -105,7 +112,12 @@ router.get('/:id/orders');
 /**
  * get a particular order of the currently signed in user (verified users only)
  */
-router.get('/me/orders/:orderId');
+router.get(
+  '/me/orders/:orderId',
+  authenticateRequest,
+  verifyRequest,
+  getCurrentUserOrderById
+);
 /**
  * get a particular order of a particular user (admin only)
  */

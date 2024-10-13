@@ -4,6 +4,8 @@ import HttpError from '../lib/http-error';
 import validateSchema from '../lib/validate-schema';
 import {
   addItemToCartSchema,
+  getCurrentUserCartFilterSchema,
+  getCurrentUserOrdersFilterSchema,
   getUsersFilterSchema,
   updateCurrentUserSchema,
   updateUserStatusSchema,
@@ -13,7 +15,8 @@ import Cart from '../models/cart';
 import Product from '../models/product';
 import mongoose from 'mongoose';
 import User, { UserAuthType, UserRole } from '../models/user';
-import paginateQuery from 'lib/paginate-query';
+import paginateQuery from '../lib/paginate-query';
+import Order, { OrderStatus } from '../models/order';
 
 interface GetUsersFilter {
   email_verified?: boolean;
@@ -154,7 +157,7 @@ export const updateCurrentUser = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -261,14 +264,33 @@ export const getCurrentUserCart = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
 
-    const cart = await Cart.find({ user: user._id }).lean();
+    const data = validateSchema<z.infer<typeof getCurrentUserCartFilterSchema>>(
+      request.query,
+      getCurrentUserCartFilterSchema
+    );
 
-    response.json(cart);
+    const { page, limit, sort_by, sort_order } = data;
+
+    const paginationResult = await paginateQuery({
+      model: Cart,
+      filter: { user: user._id },
+      page: +page,
+      limit: +limit,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
+      sort_order,
+    });
+
+    response.json(paginationResult);
   } catch (error: any) {
     next(error);
   }
@@ -282,7 +304,7 @@ export const addItemToCart = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -306,7 +328,7 @@ export const addItemToCart = async (
     if (product.is_archived || product.stock === 0) {
       throw new HttpError(
         'Product with the provided ID is unavailable or out of stock',
-        400
+        422
       );
     }
 
@@ -342,7 +364,7 @@ export const removeItemFromCart = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -361,7 +383,7 @@ export const removeItemFromCart = async (
     if (!cart_item) {
       throw new HttpError(
         `Cart item with the provided ID does not exist or has been removed from cart`,
-        400
+        404
       );
     }
 
@@ -381,7 +403,7 @@ export const incrementCartItemQuantity = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -401,32 +423,32 @@ export const incrementCartItemQuantity = async (
     if (!cart_item) {
       throw new HttpError(
         `Cart item with the provided ID does not exist or has been removed from cart`,
-        400
-      );
-    }
-
-    const product = await Product.findById(cart_item.product);
-
-    if (!product) {
-      await cart_item.deleteOne();
-
-      throw new HttpError(
-        'Product with the provided ID does not exist or has been deleted',
         404
       );
     }
 
-    if (product.is_archived || product.stock === 0) {
+    // const product = await Product.findById(cart_item.product);
+
+    // if (!product) {
+    //   await cart_item.deleteOne();
+
+    //   throw new HttpError(
+    //     'Product with the provided ID does not exist or has been deleted',
+    //     404
+    //   );
+    // }
+
+    if (cart_item.product?.is_archived || cart_item.product?.stock === 0) {
       throw new HttpError(
         'Product with the provided ID is unavailable or out of stock',
-        400
+        422
       );
     }
 
-    if (cart_item.quantity === product.stock) {
+    if (cart_item.quantity === cart_item.product?.stock) {
       throw new HttpError(
         'Cart item quantity cannot exceed the number of items in stock',
-        400
+        422
       );
     }
 
@@ -450,7 +472,7 @@ export const decrementCartItemQuantity = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -474,18 +496,18 @@ export const decrementCartItemQuantity = async (
       );
     }
 
-    const product = await Product.findById(cart_item.product);
+    // const product = await Product.findById(cart_item.product);
 
-    if (!product) {
-      await cart_item.deleteOne();
+    // if (!product) {
+    //   await cart_item.deleteOne();
 
-      throw new HttpError(
-        'Product with the provided ID does not exist or has been deleted',
-        404
-      );
-    }
+    //   throw new HttpError(
+    //     'Product with the provided ID does not exist or has been deleted',
+    //     404
+    //   );
+    // }
 
-    if (product.is_archived || product.stock === 0) {
+    if (cart_item.product?.is_archived || cart_item.product?.stock === 0) {
       throw new HttpError(
         'Product with the provided ID is unavailable or out of stock',
         400
@@ -520,7 +542,7 @@ export const clearCurrentUserCart = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -532,6 +554,84 @@ export const clearCurrentUserCart = async (
     }
 
     response.json({ message: 'Cart cleared successfully' });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+interface GetUserOrdersFilter {
+  status?: OrderStatus;
+}
+
+export const getCurrentUserOrders = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const data = validateSchema<
+      z.infer<typeof getCurrentUserOrdersFilterSchema>
+    >(request.query, getCurrentUserOrdersFilterSchema);
+
+    const { status, page, limit, sort_by, sort_order } = data;
+
+    const filter: GetUserOrdersFilter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    const paginationResult = await paginateQuery({
+      model: Order,
+      filter: { user: user._id, ...filter },
+      page: +page,
+      limit: +limit,
+      sort_by: sort_by === 'date_created' ? 'createdAt' : sort_by,
+      sort_order,
+    });
+
+    response.json(paginationResult);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getCurrentUserOrderById = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || !user.email_verified) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const { orderId } = request.params;
+
+    if (!mongoose.isValidObjectId(orderId)) {
+      throw new HttpError('Invalid Order ID', 400);
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      throw new HttpError(
+        'Order with the provided ID does not exist or has been cancelled',
+        404
+      );
+    }
+
+    response.json(order);
   } catch (error: any) {
     next(error);
   }
