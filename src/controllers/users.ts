@@ -7,6 +7,7 @@ import {
   getCurrentUserCartFilterSchema,
   getUserOrdersFilterSchema,
   getUsersFilterSchema,
+  placeOrderSchema,
   updateCurrentUserSchema,
   updateUserStatusSchema,
 } from '../schemas/user';
@@ -16,7 +17,12 @@ import Product from '../models/product';
 import mongoose from 'mongoose';
 import User, { UserAuthType, UserRole } from '../models/user';
 import paginateQuery from '../lib/paginate-query';
-import Order, { OrderStatus } from '../models/order';
+import Order, {
+  OrderItem,
+  OrderStatus,
+  PopulatedOrderItem,
+} from '../models/order';
+import calculateSubTotal from '../lib/calculateSubTotal';
 
 interface GetUsersFilter {
   email_verified?: boolean;
@@ -571,7 +577,7 @@ export const getCurrentUserOrders = async (
   try {
     const user = request.user;
 
-    if (!user) {
+    if (!user || !user.email_verified) {
       // unlikely to be called, but in case
       throw new HttpError('Unauthorized access', 401);
     }
@@ -740,6 +746,74 @@ export const getUserOrderById = async (
     }
 
     response.json(order);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const placeOrder = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    if (!user || !user.email_verified) {
+      // unlikely to be called, but in case
+      throw new HttpError('Unauthorized access', 401);
+    }
+
+    const { save_billing_info } = request.query; // TODO: implement this!
+
+    const data = validateSchema<z.infer<typeof placeOrderSchema>>(
+      request.body,
+      placeOrderSchema
+    );
+
+    const { items, billing } = data;
+
+    // initialize variable to store order items with populated product field
+    // this is to be used to calculate the total price of the order
+    let populatedOrderItems = [] as PopulatedOrderItem[];
+
+    // loop through order items and validate each product ID
+    // uses for of loop in place of forEach, as forEach doesn't handle asynchronous operations well
+    for (const order_item of items) {
+      const { product: product_id, quantity } = order_item;
+
+      const product = await Product.findById(product_id); // TODO: consider soft delete here; fetch product that has not been deleted
+
+      if (!product) {
+        throw new HttpError(
+          `Product with ID ${product_id} does not exist or has been deleted`,
+          422
+        );
+      }
+
+      if (product.is_archived || product.stock === 0) {
+        throw new HttpError(
+          `Product with ID ${product_id} is unavailable or out of stock`,
+          422
+        );
+      }
+
+      populatedOrderItems.push({ product, quantity });
+    }
+
+    const order = await Order.create({
+      user: user._id,
+      items,
+      billing,
+      status: 'pending',
+      total_price: calculateSubTotal(populatedOrderItems),
+    });
+
+    await Cart.deleteMany({ user: user._id });
+
+    response
+      .status(201)
+      .json({ message: 'Order placed successfully', data: order });
   } catch (error: any) {
     next(error);
   }

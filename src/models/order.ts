@@ -3,7 +3,11 @@ import mongooseAutoPopulate from 'mongoose-autopopulate';
 import { ProductSchemaInterface } from './product';
 
 export interface OrderItem {
-  // product: mongoose.Types.ObjectId;
+  product: mongoose.Types.ObjectId;
+  quantity: number;
+}
+
+export interface PopulatedOrderItem {
   product: ProductSchemaInterface;
   quantity: number;
 }
@@ -16,16 +20,20 @@ export interface OrderAddress {
 }
 
 export interface OrderBillingAddress {
-  receipent_first_name: string;
-  receipent_last_name: string;
+  receipent: {
+    first_name: string;
+    last_name: string;
+    mobile_number: string;
+  };
   address: OrderAddress;
 }
 
-export type OrderStatus = 'pending' | 'shipped' | 'delivered';
+export type OrderStatus = 'pending' | 'dispatched' | 'shipped' | 'delivered';
 
-export interface OrderSchemaInterface extends Document {
+export interface OrderSchemaInterface
+  extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
-  items: OrderItem[];
+  items: PopulatedOrderItem[];
   billing: OrderBillingAddress;
   status: OrderStatus;
   total_price: number;
@@ -54,13 +62,19 @@ const orderSchema: Schema<OrderSchemaInterface> = new Schema(
       },
     ],
     billing: {
-      receipent_first_name: {
-        type: String,
-        // required: true
-      },
-      receipent_last_name: {
-        type: String,
-        // required: true
+      receipent: {
+        first_name: {
+          type: String,
+          required: true,
+        },
+        last_name: {
+          type: String,
+          required: true,
+        },
+        mobile_number: {
+          type: String,
+          required: true,
+        },
       },
       address: {
         street: {
@@ -80,6 +94,15 @@ const orderSchema: Schema<OrderSchemaInterface> = new Schema(
           required: true,
         },
       },
+    },
+    status: {
+      type: String,
+      default: 'pending',
+      enum: ['pending', 'dispatched', 'shipped', 'delivered'],
+    },
+    total_price: {
+      type: Number,
+      required: true,
     },
   },
   { timestamps: true }

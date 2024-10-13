@@ -2,7 +2,7 @@ import mongoose, { Document, model, Schema } from 'mongoose';
 import mongooseAutoPopulate from 'mongoose-autopopulate';
 import { ProductSchemaInterface } from './product';
 
-export interface CartSchemaInterface extends Document {
+export interface CartSchemaInterface extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
   // product: mongoose.Types.ObjectId;
   product: ProductSchemaInterface;

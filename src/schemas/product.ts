@@ -211,6 +211,8 @@ export const productUpdateSchema = z.object({
     })
     .positive('Stock should be a positive numeric value')
     .optional(),
-  is_featured: z.enum(['true', 'false']).optional(),
-  is_archived: z.enum(['true', 'false']).optional(),
+  // is_featured: z.enum(['true', 'false']).optional(),
+  // is_archived: z.enum(['true', 'false']).optional(),
+  is_featured: z.boolean().optional(),
+  is_archived: z.boolean().optional(),
 });

@@ -89,7 +89,9 @@ export const updateUserStatusSchema = z.object({
 
 export const getUserOrdersFilterSchema = z
   .object({
-    status: z.enum(['pending', 'shipped', 'delivered']).optional(),
+    status: z
+      .enum(['pending', 'dispatched', 'shipped', 'delivered'])
+      .optional(),
     // date_range: z.string().optional(),
     page: z
       .string()
@@ -106,3 +108,73 @@ export const getUserOrdersFilterSchema = z
     path: ['sort_order'],
     message: `Sorting order isn't specified`,
   });
+
+const orderItemSchema = z.object({
+  product: z
+    .instanceof(mongoose.Types.ObjectId)
+    .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
+  quantity: z
+    .number({
+      invalid_type_error: 'Product quantity should be a number',
+    })
+    .min(1, 'Minimum product quantity is 1'),
+});
+
+const receipentSchema = z.object({
+  first_name: z
+    .string({
+      required_error: `Receipent's first name is required`,
+      invalid_type_error: `Receipent's first name should be a string value`,
+    })
+    .min(3, `Receipent's first name cannot be less than 3 characters`)
+    .refine(
+      (value) => NAME_REGEX.regex.test(value),
+      NAME_REGEX.hint.bind({ label: `Receipent's first name` })
+    ),
+  last_name: z
+    .string({
+      required_error: `Receipent's last name is required`,
+      invalid_type_error: `Receipent's last name should be a string value`,
+    })
+    .min(3, `Receipent's last name cannot be less than 3 characters`)
+    .refine(
+      (value) => NAME_REGEX.regex.test(value),
+      NAME_REGEX.hint.bind({ label: `Receipent's last name` })
+    ),
+  mobile_number: z.number({
+    // TODO: validate number properly
+    required_error: `Receipent's mobile number is required`,
+  }),
+});
+
+// TODO: validate address properly
+const addressSchema = z.object({
+  street: z
+    .string({
+      required_error: 'Street is required',
+    })
+    .min(3, 'Street cannot be less than  characters'),
+  city: z
+    .string({
+      required_error: 'Street is required',
+    })
+    .min(3, 'Street cannot be less than  characters'),
+  state: z
+    .string({
+      required_error: 'Street is required',
+    })
+    .min(3, 'Street cannot be less than  characters'),
+  country: z
+    .string({
+      required_error: 'Street is required',
+    })
+    .min(3, 'Street cannot be less than  characters'),
+});
+
+export const placeOrderSchema = z.object({
+  items: z.array(orderItemSchema),
+  billing: z.object({
+    receipent: receipentSchema,
+    address: addressSchema,
+  }),
+});

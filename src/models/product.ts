@@ -1,5 +1,6 @@
 import mongoose, { Document, model, Schema } from 'mongoose';
 import mongooseAutoPopulate from 'mongoose-autopopulate';
+import { BrandSchemaInterface } from './brand';
 // import { nanoid } from 'nanoid';
 
 export type ProductCategory =
@@ -11,9 +12,11 @@ export type ProductCategory =
   | 'smartwatches'
   | 'gaming-consoles';
 
-export interface ProductSchemaInterface extends Document {
+export interface ProductSchemaInterface
+  extends Document<mongoose.Types.ObjectId> {
   name: string;
   brand: mongoose.Types.ObjectId;
+  // brand: BrandSchemaInterface;
   description: string;
   category: ProductCategory;
   image: string;
@@ -37,7 +40,7 @@ const productSchema: Schema<ProductSchemaInterface> = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Brand',
       required: true,
-      // autopopulate: true,
+      autopopulate: true,
     },
     description: {
       type: String,
@@ -91,7 +94,7 @@ const productSchema: Schema<ProductSchemaInterface> = new Schema(
   { timestamps: true }
 );
 
-// productSchema.plugin(mongooseAutoPopulate);
+productSchema.plugin(mongooseAutoPopulate);
 
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
@@ -123,12 +126,14 @@ productSchema.pre('save', async function (next) {
     }
   }
 
-  try {
-    if (this.stock === 0) {
-      this.is_archived = true;
+  if (!this.isModified('is_archived')) {
+    try {
+      if (this.stock === 0) {
+        this.is_archived = true;
+      }
+    } catch (error: any) {
+      next(error);
     }
-  } catch (error: any) {
-    next(error);
   }
 
   next();

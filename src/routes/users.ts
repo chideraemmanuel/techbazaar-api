@@ -17,6 +17,7 @@ import {
   getUserOrderById,
   getUserOrders,
   incrementCartItemQuantity,
+  placeOrder,
   removeItemFromCart,
   updateCurrentUser,
   updateUserStatus,
@@ -129,7 +130,7 @@ router.get('/:userId/orders/:orderId', authorizeRequest, getUserOrderById);
 /**
  * place an order, currently signed in user (verified users only)
  */
-router.post('/me/orders');
+router.post('/me/orders', authenticateRequest, placeOrder);
 // =============================================================================
 
 /**

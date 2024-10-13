@@ -1,7 +1,8 @@
 import mongoose, { Document, model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
-export interface EmailVerificationSchemaInterface extends Document {
+export interface EmailVerificationSchemaInterface
+  extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
   OTP: string;
   expiresAt: Date;

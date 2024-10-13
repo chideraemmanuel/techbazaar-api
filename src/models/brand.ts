@@ -1,6 +1,7 @@
-import { Document, model, Schema } from 'mongoose';
+import mongoose, { Document, model, Schema } from 'mongoose';
 
-export interface BrandSchemaInterface extends Document {
+export interface BrandSchemaInterface
+  extends Document<mongoose.Types.ObjectId> {
   name: string;
   logo?: string;
 }

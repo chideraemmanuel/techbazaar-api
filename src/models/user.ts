@@ -1,10 +1,10 @@
-import { Document, model, Schema } from 'mongoose';
+import mongoose, { Document, model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
 export type UserAuthType = 'manual' | 'google';
 export type UserRole = 'user' | 'admin';
 
-export interface UserSchemaInterface extends Document {
+export interface UserSchemaInterface extends Document<mongoose.Types.ObjectId> {
   first_name: string;
   last_name: string;
   email: string;

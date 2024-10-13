@@ -523,14 +523,14 @@ export const updateProduct = async (
       product.stock = stock;
     }
 
-    if (is_featured) {
+    if (is_featured !== undefined) {
       // ? throw error if new is_featured is the same as previous is_featured..?
-      product.is_featured = is_featured === 'true' ? true : false;
+      product.is_featured = is_featured;
     }
 
-    if (is_archived) {
+    if (is_archived !== undefined) {
       // ? throw error if new is_archived is the same as previous is_archived..?
-      product.is_archived = is_archived === 'true' ? true : false;
+      product.is_archived = is_archived;
     }
 
     const updated_product = await product.save();
