@@ -265,6 +265,5 @@ export const productUpdateSchema = z.object({
   // is_featured: z.enum(['true', 'false']).optional(),
   // is_archived: z.enum(['true', 'false']).optional(),
   is_featured: z.boolean().optional(),
-  is_archived: z.boolean().optional(),
   is_deleted: z.boolean().optional(),
 });

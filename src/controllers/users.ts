@@ -38,13 +38,6 @@ export const getAllUsers = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const data = validateSchema<z.infer<typeof getUsersFilterSchema>>(
       request.query,
       getUsersFilterSchema
@@ -114,11 +107,6 @@ export const getCurrentUser = async (
   try {
     const user = request.user;
 
-    if (!user) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     response.json(user);
   } catch (error: any) {
     next(error);
@@ -131,26 +119,19 @@ export const getUserById = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const { userId } = request.params;
 
     if (!mongoose.isValidObjectId(userId)) {
       throw new HttpError('Invalid user ID', 400);
     }
 
-    const userExists = await User.findById(userId).lean();
+    const user = await User.findById(userId).lean();
 
-    if (!userExists) {
+    if (!user) {
       throw new HttpError('User not found', 404);
     }
 
-    response.json(userExists);
+    response.json(user);
   } catch (error: any) {
     next(error);
   }
@@ -164,11 +145,6 @@ export const updateCurrentUser = async (
   try {
     const user = request.user;
 
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     const data = validateSchema<z.infer<typeof updateCurrentUserSchema>>(
       request.body,
       updateCurrentUserSchema
@@ -181,17 +157,14 @@ export const updateCurrentUser = async (
     const { first_name, last_name, password } = data;
 
     if (first_name) {
-      // ? throw error if new first_name is the same as previous first_name..?
       user.first_name = first_name;
     }
 
     if (last_name) {
-      // ? throw error if new last_name is the same as previous last_name..?
       user.last_name = last_name;
     }
 
     if (password) {
-      // ? throw error if new password is the same as previous password..?
       user.password = password;
     }
 
@@ -212,22 +185,15 @@ export const updateUserStatus = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const { userId } = request.params;
 
     if (!mongoose.isValidObjectId(userId)) {
       throw new HttpError('Invalid user ID', 400);
     }
 
-    const userExists = await User.findById(userId);
+    const user = await User.findById(userId);
 
-    if (!userExists) {
+    if (!user) {
       throw new HttpError('User not found', 404);
     }
 
@@ -243,16 +209,14 @@ export const updateUserStatus = async (
     const { role, disabled } = data;
 
     if (role) {
-      // ? throw error if new role is the same as previous role..?
-      userExists.role = role;
+      user.role = role;
     }
 
     if (disabled) {
-      // ? throw error if new disabled status is the same as previous disabled status..?
-      userExists.disabled = disabled;
+      user.disabled = disabled;
     }
 
-    const updated_user = await userExists.save();
+    const updated_user = await user.save();
 
     response.json({
       message: 'User status updated successfully',
@@ -270,11 +234,6 @@ export const getCurrentUserCart = async (
 ) => {
   try {
     const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
 
     const data = validateSchema<z.infer<typeof getCurrentUserCartFilterSchema>>(
       request.query,
@@ -310,11 +269,6 @@ export const addItemToCart = async (
 ) => {
   try {
     const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
 
     const data = validateSchema<z.infer<typeof addItemToCartSchema>>(
       request.body,
@@ -371,11 +325,6 @@ export const removeItemFromCart = async (
   try {
     const user = request.user;
 
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     const { cartItemId } = request.params;
 
     if (!mongoose.isValidObjectId(cartItemId)) {
@@ -409,11 +358,6 @@ export const incrementCartItemQuantity = async (
 ) => {
   try {
     const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
 
     const { cartItemId } = request.params;
 
@@ -478,11 +422,6 @@ export const decrementCartItemQuantity = async (
 ) => {
   try {
     const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
 
     const { cartItemId } = request.params;
 
@@ -549,11 +488,6 @@ export const clearCurrentUserCart = async (
   try {
     const user = request.user;
 
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     const delete_response = await Cart.deleteMany({ user: user._id });
 
     if (delete_response.deletedCount === 0) {
@@ -577,11 +511,6 @@ export const getCurrentUserOrders = async (
 ) => {
   try {
     const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
 
     const data = validateSchema<z.infer<typeof getUserOrdersFilterSchema>>(
       request.query,
@@ -622,22 +551,15 @@ export const getUserOrders = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const { userId } = request.params;
 
     if (!mongoose.isValidObjectId(userId)) {
       throw new HttpError('Invalid user ID', 400);
     }
 
-    const userExists = await User.findById(userId).lean();
+    const user = await User.findById(userId).lean();
 
-    if (!userExists) {
+    if (!user) {
       throw new HttpError('User not found', 404);
     }
 
@@ -656,7 +578,7 @@ export const getUserOrders = async (
 
     const paginationResult = await paginateQuery({
       model: Order,
-      filter: { user: userExists._id, ...filter },
+      filter: { user: user._id, ...filter },
       page: +page,
       limit: +limit,
       sort_by:
@@ -680,13 +602,6 @@ export const getCurrentUserOrderById = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     const { orderId } = request.params;
 
     if (!mongoose.isValidObjectId(orderId)) {
@@ -714,13 +629,6 @@ export const getUserOrderById = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const { userId, orderId } = request.params;
 
     if (!mongoose.isValidObjectId(userId)) {
@@ -731,9 +639,9 @@ export const getUserOrderById = async (
       throw new HttpError('Invalid order ID', 400);
     }
 
-    const userExists = await User.findById(userId).lean();
+    const user = await User.findById(userId).lean();
 
-    if (!userExists) {
+    if (!user) {
       throw new HttpError('User not found', 404);
     }
 
@@ -760,11 +668,6 @@ export const placeOrder = async (
   try {
     const user = request.user;
 
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     const { save_billing_info } = request.query; // TODO: implement this!
 
     const data = validateSchema<z.infer<typeof placeOrderSchema>>(
@@ -783,11 +686,15 @@ export const placeOrder = async (
     for (const order_item of items) {
       const { product: product_id, quantity } = order_item;
 
-      const product = await Product.findById(product_id); // TODO: consider soft delete here; fetch product that has not been deleted
+      const product = await Product.findOne({
+        _id: product_id,
+        is_archived: false,
+        is_deleted: false,
+      });
 
       if (!product) {
         throw new HttpError(
-          `Product with ID ${product_id} does not exist or has been deleted`,
+          `Product with ID ${product_id} does not exist, is unavailable, or has been deleted`,
           422
         );
       }
@@ -795,6 +702,13 @@ export const placeOrder = async (
       if (product.is_archived || product.stock === 0) {
         throw new HttpError(
           `Product with ID ${product_id} is unavailable or out of stock`,
+          422
+        );
+      }
+
+      if (quantity > product.stock) {
+        throw new HttpError(
+          `The desired quantity of the product with ID ${product_id} exceeds the number of items in stock`,
           422
         );
       }
@@ -809,6 +723,21 @@ export const placeOrder = async (
       status: 'pending',
       total_price: calculateSubTotal(populatedOrderItems),
     });
+
+    // loop through ordered items and update stock count for each
+    for (const order_item of items) {
+      const { product: product_id, quantity } = order_item;
+
+      const product = await Product.findOne({
+        _id: product_id,
+        is_archived: false,
+        is_deleted: false,
+      });
+
+      product.stock = product.stock - quantity;
+
+      await product.save();
+    }
 
     await Cart.deleteMany({ user: user._id });
 
@@ -826,13 +755,6 @@ export const cancelOrder = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || !user.email_verified) {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 401);
-    }
-
     const { orderId } = request.params;
 
     if (!mongoose.isValidObjectId(orderId)) {
@@ -861,10 +783,24 @@ export const cancelOrder = async (
 
     await order.deleteOne();
 
+    // loop through ordered items and update stock count for each
+    for (const order_item of order.items) {
+      const { product: product_id, quantity } = order_item;
+
+      const product = await Product.findOne({
+        _id: product_id,
+        is_archived: false,
+        is_deleted: false,
+      });
+
+      product.stock = product.stock + quantity;
+
+      await product.save();
+    }
+
     response.json({ message: 'Order cancelled successfully' });
   } catch (error: any) {
     next(error);
   }
 };
 // TODO: send mail for order actions..?
-// TODO: update stock count after order

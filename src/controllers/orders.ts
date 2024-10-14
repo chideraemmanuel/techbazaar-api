@@ -21,13 +21,6 @@ export const getAllOrders = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const data = validateSchema<z.infer<typeof getOrdersFilterSchema>>(
       request.query,
       getOrdersFilterSchema
@@ -67,13 +60,6 @@ export const getOrderById = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const { orderId } = request.params;
 
     if (!mongoose.isValidObjectId(orderId)) {
@@ -101,13 +87,6 @@ export const updateOrderStatus = async (
   next: NextFunction
 ) => {
   try {
-    const user = request.user;
-
-    if (!user || user.role !== 'admin') {
-      // unlikely to be called, but in case
-      throw new HttpError('Unauthorized access', 403);
-    }
-
     const { orderId } = request.params;
 
     if (!mongoose.isValidObjectId(orderId)) {

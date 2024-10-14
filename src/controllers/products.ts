@@ -548,12 +548,10 @@ export const updateProduct = async (
       price,
       stock,
       is_featured,
-      is_archived,
       is_deleted,
     } = data;
 
     if (name) {
-      // ? throw error if new name is the same as previous name..?
       product.name = name;
     }
 
@@ -572,12 +570,10 @@ export const updateProduct = async (
     }
 
     if (description) {
-      // ? throw error if new description is the same as previous description..?
       product.description = description;
     }
 
     if (category) {
-      // ? throw error if new category is the same as previous category..?
       product.category = category;
     }
 
@@ -607,17 +603,13 @@ export const updateProduct = async (
       product.is_featured = is_featured;
     }
 
-    if (is_archived !== undefined) {
-      product.is_archived = is_archived;
-    }
-
     if (is_deleted !== undefined) {
       product.is_deleted = is_deleted;
     }
 
     const updated_product = await product.save();
 
-    // TODO: figure out how to persist previous logo url in a variable and delete here
+    // TODO: figure out how to persist previous image url in a variable and delete here
     // // delete previous product image from firebase if new image is uploaded
     // if (image) {
     //   const storage = getStorage(app);

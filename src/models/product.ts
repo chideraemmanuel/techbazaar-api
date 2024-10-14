@@ -82,7 +82,7 @@ const productSchema: Schema<ProductSchemaInterface> = new Schema(
     stock: {
       type: Number,
       required: true,
-      min: 1,
+      min: 0,
     },
     is_featured: {
       type: Boolean,
@@ -137,15 +137,15 @@ productSchema.pre('save', async function (next) {
     }
   }
 
-  if (!this.isModified('is_archived')) {
-    try {
-      if (this.stock === 0) {
-        this.is_archived = true;
-      }
-    } catch (error: any) {
-      next(error);
-    }
-  }
+  // if (!this.isModified('is_archived')) {
+  // try {
+  //   if (this.stock === 0) {
+  //     this.is_archived = true;
+  //   }
+  // } catch (error: any) {
+  //   next(error);
+  // }
+  // }
 
   if (this.isModified('is_deleted')) {
     try {
@@ -156,6 +156,14 @@ productSchema.pre('save', async function (next) {
       }
     } catch (error: any) {
       next(error);
+    }
+  }
+
+  if (this.isModified('stock')) {
+    if (this.stock === 0) {
+      this.is_archived = true;
+    } else {
+      this.is_archived = false;
     }
   }
 
