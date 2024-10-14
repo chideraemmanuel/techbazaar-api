@@ -2,7 +2,7 @@ import { PRODUCT_CATEGORIES_ARRAY } from 'lib/constants';
 import mongoose from 'mongoose';
 import z from 'zod';
 
-export const getProductsFilterSchema = z
+export const getAvailableProductsFilterSchema = z
   .object({
     search_query: z
       .string()
@@ -37,7 +37,56 @@ export const getProductsFilterSchema = z
       .string()
       .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
       .optional(),
-    sort_by: z.enum(['name', 'price']).optional(),
+    sort_by: z
+      .enum(['name', 'price', 'date_created', 'date_updated'])
+      .optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });
+
+export const getAllProductsFilterSchema = z
+  .object({
+    search_query: z
+      .string()
+      .min(1, 'Search query string cannot be empty')
+      .optional(),
+    brand: z.string().min(1, 'Product brand cannot be empty').optional(),
+    price_range: z
+      .string()
+      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
+      .optional(),
+    category: z
+      .enum([
+        'smartphones',
+        'tablets',
+        'laptops',
+        'headphones',
+        'speakers',
+        'smartwatches',
+        'gaming-consoles',
+      ])
+      .refine(
+        (value) => PRODUCT_CATEGORIES_ARRAY.includes(value),
+        'Invalid category'
+      )
+      .optional(),
+    is_featured: z.enum(['true', 'false']).optional(),
+    is_archived: z.enum(['true', 'false']).optional(),
+    is_deleted: z.enum(['true', 'false']).optional(),
+    page: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
+      .optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+    sort_by: z
+      .enum(['name', 'price', 'date_created', 'date_updated'])
+      .optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
   .refine((data) => !data.sort_by || data.sort_order, {
@@ -79,7 +128,9 @@ export const getRadomProductsFilterSchema = z
         'Invalid product ID passed to exclude'
       )
       .optional(),
-    sort_by: z.enum(['name', 'price']).optional(),
+    sort_by: z
+      .enum(['name', 'price', 'date_created', 'date_updated'])
+      .optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
   .refine((data) => !data.sort_by || data.sort_order, {
@@ -215,4 +266,5 @@ export const productUpdateSchema = z.object({
   // is_archived: z.enum(['true', 'false']).optional(),
   is_featured: z.boolean().optional(),
   is_archived: z.boolean().optional(),
+  is_deleted: z.boolean().optional(),
 });

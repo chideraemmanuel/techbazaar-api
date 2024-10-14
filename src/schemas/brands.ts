@@ -1,12 +1,44 @@
 import z from 'zod';
 
-export const getBrandsFilterSchema = z
+export const getAllBrandsFilterSchema = z
   .object({
     search_query: z
       .string()
       .min(1, 'Search query string cannot be empty')
       .optional(),
-    sort_by: z.enum(['name']).optional(),
+    is_deleted: z.enum(['true', 'false']).optional(),
+    sort_by: z.enum(['name', 'date_created', 'date_updated']).optional(),
+    sort_order: z.enum(['ascending', 'descending']).optional(),
+    paginated: z.literal('true').optional(),
+    page: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
+      .optional(),
+    limit: z
+      .string()
+      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
+      .optional(),
+  })
+  .refine((data) => !data.page || data.paginated, {
+    path: ['page'],
+    message: '"paginated" query parameter is not set.',
+  })
+  .refine((data) => !data.limit || data.paginated, {
+    path: ['page'],
+    message: '"paginated" query parameter is not set.',
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `Sorting order isn't specified`,
+  });
+
+export const getAvailableBrandsFilterSchema = z
+  .object({
+    search_query: z
+      .string()
+      .min(1, 'Search query string cannot be empty')
+      .optional(),
+    sort_by: z.enum(['name', 'date_created', 'date_updated']).optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
     paginated: z.literal('true').optional(),
     page: z
@@ -65,4 +97,5 @@ export const brandUpdateSchema = z.object({
       'Only JPEG, JPG, PNG, and WebP formats are supported.'
     )
     .optional(),
+  is_deleted: z.boolean().optional(),
 });

@@ -9,6 +9,10 @@ interface Params {
   // sort_by?: 'name' | 'price';
   sort_by?: string;
   sort_order?: 'ascending' | 'descending';
+  select?:
+    | string
+    | string[]
+    | Record<string, number | boolean | string | object>;
 }
 
 const paginateQuery = async ({
@@ -18,6 +22,7 @@ const paginateQuery = async ({
   limit,
   sort_by,
   sort_order,
+  select,
 }: Params) => {
   const pageNumber = page && Math.ceil(page) > 0 ? Math.ceil(page) : 1;
 
@@ -35,6 +40,7 @@ const paginateQuery = async ({
     .skip((pageNumber - 1) * limitNumber)
     .limit(limitNumber)
     .sort(sort_by && sort_order && { [sort_by]: sort_order })
+    .select(select)
     .exec();
 
   const total_records = await model.countDocuments(filter);

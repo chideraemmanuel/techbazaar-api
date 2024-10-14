@@ -866,3 +866,5 @@ export const cancelOrder = async (
     next(error);
   }
 };
+// TODO: send mail for order actions..?
+// TODO: update stock count after order

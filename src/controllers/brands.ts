@@ -3,7 +3,8 @@ import validateSchema from '../lib/validate-schema';
 import {
   addBrandSchema,
   brandUpdateSchema,
-  getBrandsFilterSchema,
+  getAllBrandsFilterSchema,
+  getAvailableBrandsFilterSchema,
 } from '../schemas/brands';
 import z from 'zod';
 import paginateQuery from '../lib/paginate-query';
@@ -20,20 +21,83 @@ import {
 } from 'firebase/storage';
 import { app } from '../config/firebase';
 import { v4 as uuid } from 'uuid';
+import Product from '../models/product';
 
 interface GetBrandsFilter {
   name?: { $regex: string; $options: 'i' };
+  is_deleted?: boolean;
 }
 
-export const getBrands = async (
+export const getAllBrands = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = validateSchema<z.infer<typeof getAllBrandsFilterSchema>>(
+      request.query,
+      getAllBrandsFilterSchema
+    );
+
+    const {
+      search_query,
+      is_deleted,
+      sort_by,
+      sort_order,
+      paginated,
+      page,
+      limit,
+    } = data;
+
+    const filter: GetBrandsFilter = {};
+
+    if (search_query) {
+      filter.name = { $regex: search_query, $options: 'i' };
+    }
+
+    if (is_deleted) {
+      filter.is_deleted = is_deleted === 'true' ? true : false;
+    }
+
+    if (paginated) {
+      const paginationResult = await paginateQuery({
+        model: Brand,
+        filter,
+        page: +page,
+        limit: +limit,
+        sort_by:
+          sort_by === 'date_created'
+            ? 'createdAt'
+            : sort_by === 'date_updated'
+            ? 'updatedAt'
+            : sort_by,
+        sort_order,
+        select: '+is_deleted +deleted_at',
+      });
+
+      response.json(paginationResult);
+      return;
+    }
+
+    const brands = await Brand.find(filter)
+      .sort(sort_by && sort_order && { [sort_by]: sort_order })
+      .lean();
+
+    response.json(brands);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getAvailableBrands = async (
   request: Request,
   response: Response,
   next: NextFunction
 ) => {
   try {
-    const data = validateSchema<z.infer<typeof getBrandsFilterSchema>>(
+    const data = validateSchema<z.infer<typeof getAvailableBrandsFilterSchema>>(
       request.query,
-      getBrandsFilterSchema
+      getAvailableBrandsFilterSchema
     );
 
     const { search_query, sort_by, sort_order, paginated, page, limit } = data;
@@ -47,10 +111,15 @@ export const getBrands = async (
     if (paginated) {
       const paginationResult = await paginateQuery({
         model: Brand,
-        filter,
+        filter: { ...filter, is_deleted: false },
         page: +page,
         limit: +limit,
-        sort_by,
+        sort_by:
+          sort_by === 'date_created'
+            ? 'createdAt'
+            : sort_by === 'date_updated'
+            ? 'updatedAt'
+            : sort_by,
         sort_order,
       });
 
@@ -68,19 +137,46 @@ export const getBrands = async (
   }
 };
 
-export const getBrandById = async (
-  request: Request,
+export const getAvailableBrandById = async (
+  request: AuthorizedRequest,
   response: Response,
   next: NextFunction
 ) => {
   try {
-    const { id } = request.params;
+    const { brandId } = request.params;
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!mongoose.isValidObjectId(brandId)) {
       throw new HttpError('Invalid brand ID', 400);
     }
 
-    const brand = await Brand.findById(id).lean();
+    const brand = await Brand.findOne({
+      _id: brandId,
+      is_deleted: false,
+    }).lean();
+
+    if (!brand) {
+      throw new HttpError('Brand with the provided ID does not exist', 404);
+    }
+
+    response.json(brand);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getBrandById = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { brandId } = request.params;
+
+    if (!mongoose.isValidObjectId(brandId)) {
+      throw new HttpError('Invalid brand ID', 400);
+    }
+
+    const brand = await Brand.findById(brandId).lean();
 
     if (!brand) {
       throw new HttpError('Brand with the provided ID does not exist', 404);
@@ -141,13 +237,13 @@ export const updateBrand = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = request.params;
+    const { brandId } = request.params;
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!mongoose.isValidObjectId(brandId)) {
       throw new HttpError('Invalid brand ID', 400);
     }
 
-    const brand = await Brand.findById(id);
+    const brand = await Brand.findById(brandId);
 
     if (!brand) {
       throw new HttpError('Brand with the supplied ID does not exist', 404);
@@ -162,10 +258,9 @@ export const updateBrand = async (
       throw new HttpError('No field to be updated was supplied', 400);
     }
 
-    const { name, logo } = data;
+    const { name, logo, is_deleted } = data;
 
     if (name) {
-      // ? throw error if new name is the same as previous name..?
       brand.name = name;
     }
 
@@ -178,9 +273,11 @@ export const updateBrand = async (
       brand.logo = logo_url;
     }
 
-    const updated_brand = await brand.save();
+    if (is_deleted !== undefined) {
+      brand.is_deleted = is_deleted;
+    }
 
-    console.log('brand after update', brand);
+    const updated_brand = await brand.save();
 
     // TODO: figure out how to persist previous logo url in a variable and delete here
     // // delete previous brand logo from firebase if new logo is uploaded
@@ -213,16 +310,27 @@ export const deleteBrand = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = request.params;
+    const { brandId } = request.params;
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!mongoose.isValidObjectId(brandId)) {
       throw new HttpError('Invalid brand ID', 400);
     }
 
-    const brand = await Brand.findById(id);
+    const brand = await Brand.findById(brandId);
 
     if (!brand) {
       throw new HttpError('Brand with the supplied ID does not exist', 404);
+    }
+
+    const productWithBrand = await Product.findOne({ brand: brand._id });
+
+    if (productWithBrand) {
+      brand.is_deleted = true;
+
+      await brand.save();
+
+      response.json({ message: 'Brand deleted successfully' });
+      return;
     }
 
     await brand.deleteOne();
@@ -244,5 +352,3 @@ export const deleteBrand = async (
     next(error);
   }
 };
-// ? TODO: delete products that have deleted brand
-// TODO: implement soft delete, or update brand to null on products that have the deleted brands

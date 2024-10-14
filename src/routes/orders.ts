@@ -1,4 +1,4 @@
-import { authorizeRequest } from 'middlewares/auth';
+import { authorizeRequest } from '../middlewares/auth';
 import {
   getAllOrders,
   getOrderById,

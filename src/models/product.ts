@@ -27,7 +27,9 @@ export interface ProductSchemaInterface
   //   rating: number;
   //   reviews: mongoose.Types.ObjectId[];
   is_featured: boolean;
-  is_archived: boolean;
+  is_archived?: boolean;
+  is_deleted?: boolean;
+  deleted_at?: Date;
 }
 
 const productSchema: Schema<ProductSchemaInterface> = new Schema(
@@ -90,6 +92,15 @@ const productSchema: Schema<ProductSchemaInterface> = new Schema(
       type: Boolean,
       default: false,
     },
+    is_deleted: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
+    deleted_at: {
+      type: Date,
+      select: false,
+    },
   },
   { timestamps: true }
 );
@@ -130,6 +141,18 @@ productSchema.pre('save', async function (next) {
     try {
       if (this.stock === 0) {
         this.is_archived = true;
+      }
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  if (this.isModified('is_deleted')) {
+    try {
+      if (this.is_deleted) {
+        this.deleted_at = new Date(Date.now());
+      } else {
+        delete this.deleted_at;
       }
     } catch (error: any) {
       next(error);

@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import validateSchema from '../lib/validate-schema';
 import {
   addProductSchema,
-  getProductsFilterSchema,
+  getAllProductsFilterSchema,
+  getAvailableProductsFilterSchema,
   getRadomProductsFilterSchema,
   getRelatedProductsFilterSchema,
   productUpdateSchema,
@@ -23,6 +24,8 @@ import {
 } from 'firebase/storage';
 import { app } from '../config/firebase';
 import { v4 as uuid } from 'uuid';
+import Cart from '../models/cart';
+import Order from '../models/order';
 
 interface GetProductsFilter {
   name?: { $regex: string; $options: 'i' };
@@ -33,6 +36,8 @@ interface GetProductsFilter {
   };
   category?: ProductCategory;
   is_featured?: boolean;
+  is_archived?: boolean;
+  is_deleted?: boolean;
 }
 
 export const getAvailableProducts = async (
@@ -41,10 +46,9 @@ export const getAvailableProducts = async (
   next: NextFunction
 ) => {
   try {
-    const data = validateSchema<z.infer<typeof getProductsFilterSchema>>(
-      request.query,
-      getProductsFilterSchema
-    );
+    const data = validateSchema<
+      z.infer<typeof getAvailableProductsFilterSchema>
+    >(request.query, getAvailableProductsFilterSchema);
 
     const {
       search_query,
@@ -101,10 +105,15 @@ export const getAvailableProducts = async (
 
     const paginationResult = await paginateQuery({
       model: Product,
-      filter: { ...filter, is_archived: false },
+      filter: { ...filter, is_archived: false, is_deleted: false },
       page: +page,
       limit: +limit,
-      sort_by,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
       sort_order,
     });
 
@@ -187,13 +196,20 @@ export const getRandomAvailableProducts = async (
         $match: {
           ...filter,
           is_archived: false,
+          is_deleted: false,
           ...(exclude && { _id: { $ne: exclude } }),
         },
       },
       { $sample: { size: limitNumber } },
       sort_by &&
         sort_order && {
-          $sort: { [sort_by]: sort_order === 'ascending' ? 1 : -1 },
+          $sort: {
+            [sort_by === 'date_created'
+              ? 'createdAt'
+              : sort_by === 'date_updated'
+              ? 'updatedAt'
+              : sort_by]: sort_order === 'ascending' ? 1 : -1,
+          },
         },
     ]);
 
@@ -209,9 +225,9 @@ export const getAllProducts = async (
   next: NextFunction
 ) => {
   try {
-    const data = validateSchema<z.infer<typeof getProductsFilterSchema>>(
+    const data = validateSchema<z.infer<typeof getAllProductsFilterSchema>>(
       request.query,
-      getProductsFilterSchema
+      getAllProductsFilterSchema
     );
 
     const {
@@ -220,6 +236,8 @@ export const getAllProducts = async (
       price_range,
       category,
       is_featured,
+      is_archived,
+      is_deleted,
       page,
       limit,
       sort_by,
@@ -267,13 +285,27 @@ export const getAllProducts = async (
       filter.is_featured = is_featured === 'true' ? true : false;
     }
 
+    if (is_archived) {
+      filter.is_archived = is_archived === 'true' ? true : false;
+    }
+
+    if (is_deleted) {
+      filter.is_deleted = is_deleted === 'true' ? true : false;
+    }
+
     const paginationResult = await paginateQuery({
       model: Product,
       filter,
       page: +page,
       limit: +limit,
-      sort_by,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
       sort_order,
+      select: '+ is_archived, +is_deleted +deleted_at',
     });
 
     response.json(paginationResult);
@@ -293,8 +325,16 @@ export const getAvailableProductByIdOrSlug = async (
     const isValidId = mongoose.isValidObjectId(idOrSlug);
 
     const product = isValidId
-      ? await Product.findOne({ _id: idOrSlug, is_archived: false }).lean()
-      : await Product.findOne({ slug: idOrSlug, is_archived: false }).lean();
+      ? await Product.findOne({
+          _id: idOrSlug,
+          is_archived: false,
+          is_deleted: false,
+        }).lean()
+      : await Product.findOne({
+          slug: idOrSlug,
+          is_archived: false,
+          is_deleted: false,
+        }).lean();
 
     if (!product) {
       throw new HttpError('Product does not exist or is archived', 404);
@@ -341,8 +381,16 @@ export const getRelatedProducts = async (
     const isValidId = mongoose.isValidObjectId(idOrSlug);
 
     const product = isValidId
-      ? await Product.findOne({ _id: idOrSlug, is_archived: false }).lean()
-      : await Product.findOne({ slug: idOrSlug, is_archived: false }).lean();
+      ? await Product.findOne({
+          _id: idOrSlug,
+          is_archived: false,
+          is_deleted: false,
+        }).lean()
+      : await Product.findOne({
+          slug: idOrSlug,
+          is_archived: false,
+          is_deleted: false,
+        }).lean();
 
     if (!product) {
       throw new HttpError('Product does not exist or is archived', 404);
@@ -388,6 +436,7 @@ export const getRelatedProducts = async (
         $match: {
           ...filter,
           is_archived: false,
+          is_deleted: false,
           _id: { $ne: product._id },
           $or: [{ brand: product.brand }, { category: product.category }],
         },
@@ -500,6 +549,7 @@ export const updateProduct = async (
       stock,
       is_featured,
       is_archived,
+      is_deleted,
     } = data;
 
     if (name) {
@@ -546,23 +596,23 @@ export const updateProduct = async (
     }
 
     if (price) {
-      // ? throw error if new price is the same as previous price..?
       product.price = price;
     }
 
     if (stock) {
-      // ? throw error if new stock is the same as previous stock..?
       product.stock = stock;
     }
 
     if (is_featured !== undefined) {
-      // ? throw error if new is_featured is the same as previous is_featured..?
       product.is_featured = is_featured;
     }
 
     if (is_archived !== undefined) {
-      // ? throw error if new is_archived is the same as previous is_archived..?
       product.is_archived = is_archived;
+    }
+
+    if (is_deleted !== undefined) {
+      product.is_deleted = is_deleted;
     }
 
     const updated_product = await product.save();
@@ -609,23 +659,34 @@ export const deleteProduct = async (
       throw new HttpError('Product does not exist', 404);
     }
 
-    // const previous_image_url = product.image;
+    // const cartWithProduct = await Cart.findOne({ product: product._id })
+    // const orderWithProduct = await Order.findOne({ product: product._id })
 
-    await product.deleteOne();
+    // if (cartWithProduct || orderWithProduct) {
+    //   product.is_deleted = true
 
-    const storage = getStorage(app);
+    //   await product.save()
+    // }
 
-    // Extract the file path from the full image URL
-    // const decodedUrl = decodeURIComponent(previous_image_url);
-    const decodedUrl = decodeURIComponent(product.image);
-    const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+    // await product.deleteOne();
 
-    const previousProductImageRef = ref(storage, filePath);
-    await deleteObject(previousProductImageRef);
+    // const storage = getStorage(app);
+
+    // // Extract the file path from the full image URL
+    // const decodedUrl = decodeURIComponent(product.image);
+    // const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+
+    // const previousProductImageRef = ref(storage, filePath);
+    // await deleteObject(previousProductImageRef);
+
+    // response.json({ message: 'Product deleted successfully' });
+
+    product.is_deleted = true;
+
+    await product.save();
 
     response.json({ message: 'Product deleted successfully' });
   } catch (error: any) {
     next(error);
   }
 };
-// TODO: implement soft delete, or delete cart items that have deleted product

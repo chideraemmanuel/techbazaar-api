@@ -8,7 +8,7 @@ import {
   getOrdersFilterSchema,
   updateOrderStatusSchema,
 } from '../schemas/orders';
-import paginateQuery from 'lib/paginate-query';
+import paginateQuery from '../lib/paginate-query';
 import mongoose from 'mongoose';
 
 interface GetOrdersFilter {
