@@ -6,13 +6,26 @@ export const getAvailableProductsFilterSchema = z
   .object({
     search_query: z
       .string()
-      .min(1, 'Search query string cannot be empty')
+      .min(1, 'search_query cannot be an empty string')
       .optional(),
-    brand: z.string().min(1, 'Product brand cannot be empty').optional(),
-    price_range: z
+    brand: z
       .string()
-      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
+      .min(1, 'brand cannot be empty an empty string')
       .optional(),
+    min_price: z
+      .string()
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid min_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)), // Convert to number if present
+    max_price: z
+      .string()
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid max_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)), // Convert to number if present
     category: z
       .enum([
         'smartphones',
@@ -28,7 +41,10 @@ export const getAvailableProductsFilterSchema = z
         'Invalid category'
       )
       .optional(),
-    is_featured: z.enum(['true', 'false']).optional(),
+    is_featured: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
     page: z
       .string()
       .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
@@ -42,6 +58,18 @@ export const getAvailableProductsFilterSchema = z
       .optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
+  .refine(
+    (data) => {
+      if (data.min_price !== undefined && data.max_price !== undefined) {
+        return data.min_price <= data.max_price;
+      }
+      return true; // Skip this check if one or both prices are missing
+    },
+    {
+      message: 'min_price must be less than or equal to max_price.',
+      path: ['max_price'], // Attach the error to the max_price field
+    }
+  )
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
     message: `Sorting order isn't specified`,
@@ -54,10 +82,20 @@ export const getAllProductsFilterSchema = z
       .min(1, 'Search query string cannot be empty')
       .optional(),
     brand: z.string().min(1, 'Product brand cannot be empty').optional(),
-    price_range: z
+    min_price: z
       .string()
-      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
-      .optional(),
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid min_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)),
+    max_price: z
+      .string()
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid max_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)),
     category: z
       .enum([
         'smartphones',
@@ -73,9 +111,18 @@ export const getAllProductsFilterSchema = z
         'Invalid category'
       )
       .optional(),
-    is_featured: z.enum(['true', 'false']).optional(),
-    is_archived: z.enum(['true', 'false']).optional(),
-    is_deleted: z.enum(['true', 'false']).optional(),
+    is_featured: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
+    is_archived: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
+    is_deleted: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
     page: z
       .string()
       .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
@@ -89,6 +136,18 @@ export const getAllProductsFilterSchema = z
       .optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
+  .refine(
+    (data) => {
+      if (data.min_price !== undefined && data.max_price !== undefined) {
+        return data.min_price <= data.max_price;
+      }
+      return true; // Skip this check if one or both prices are missing
+    },
+    {
+      message: 'min_price must be less than or equal to max_price.',
+      path: ['max_price'], // Attach the error to the max_price field
+    }
+  )
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
     message: `Sorting order isn't specified`,
@@ -97,10 +156,20 @@ export const getAllProductsFilterSchema = z
 export const getRadomProductsFilterSchema = z
   .object({
     brand: z.string().min(1, 'Product brand cannot be empty').optional(),
-    price_range: z
+    min_price: z
       .string()
-      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
-      .optional(),
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid min_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)), // Convert to number if present
+    max_price: z
+      .string()
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid max_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)), // Convert to number if present
     category: z
       .enum([
         'smartphones',
@@ -116,7 +185,10 @@ export const getRadomProductsFilterSchema = z
         'Invalid category'
       )
       .optional(),
-    is_featured: z.enum(['true', 'false']).optional(),
+    is_featured: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
     limit: z
       .string()
       .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
@@ -133,6 +205,18 @@ export const getRadomProductsFilterSchema = z
       .optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
+  .refine(
+    (data) => {
+      if (data.min_price !== undefined && data.max_price !== undefined) {
+        return data.min_price <= data.max_price;
+      }
+      return true; // Skip this check if one or both prices are missing
+    },
+    {
+      message: 'min_price must be less than or equal to max_price.',
+      path: ['max_price'], // Attach the error to the max_price field
+    }
+  )
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
     message: `Sorting order isn't specified`,
@@ -140,11 +224,24 @@ export const getRadomProductsFilterSchema = z
 
 export const getRelatedProductsFilterSchema = z
   .object({
-    price_range: z
+    min_price: z
       .string()
-      .refine((value) => /^\d+-\d+$/.test(value), 'Invalid price range')
-      .optional(),
-    is_featured: z.enum(['true', 'false']).optional(),
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid min_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)), // Convert to number if present
+    max_price: z
+      .string()
+      .optional()
+      .refine((value) => !isNaN(Number(value)), {
+        message: 'Invalid max_price. Must be a valid number.',
+      })
+      .transform((value) => (value ? Number(value) : undefined)), // Convert to number if present
+    is_featured: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
     limit: z
       .string()
       .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
@@ -152,6 +249,18 @@ export const getRelatedProductsFilterSchema = z
     sort_by: z.enum(['name', 'price']).optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
+  .refine(
+    (data) => {
+      if (data.min_price !== undefined && data.max_price !== undefined) {
+        return data.min_price <= data.max_price;
+      }
+      return true; // Skip this check if one or both prices are missing
+    },
+    {
+      message: 'min_price must be less than or equal to max_price.',
+      path: ['max_price'], // Attach the error to the max_price field
+    }
+  )
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
     message: `Sorting order isn't specified`,
@@ -215,8 +324,14 @@ export const addProductSchema = z.object({
       invalid_type_error: 'Stock should be a numeric value',
     })
     .positive('Stock should be a positive numeric value'),
-  is_featured: z.enum(['true', 'false']).optional(),
-  is_archived: z.enum(['true', 'false']).optional(),
+  is_featured: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => value === 'true'),
+  is_archived: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => value === 'true'),
 });
 
 export const productUpdateSchema = z.object({

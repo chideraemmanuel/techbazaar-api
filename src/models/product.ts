@@ -137,16 +137,6 @@ productSchema.pre('save', async function (next) {
     }
   }
 
-  // if (!this.isModified('is_archived')) {
-  // try {
-  //   if (this.stock === 0) {
-  //     this.is_archived = true;
-  //   }
-  // } catch (error: any) {
-  //   next(error);
-  // }
-  // }
-
   if (this.isModified('is_deleted')) {
     try {
       if (this.is_deleted) {
@@ -160,10 +150,14 @@ productSchema.pre('save', async function (next) {
   }
 
   if (this.isModified('stock')) {
-    if (this.stock === 0) {
-      this.is_archived = true;
-    } else {
-      this.is_archived = false;
+    try {
+      if (this.stock === 0) {
+        this.is_archived = true;
+      } else {
+        this.is_archived = false;
+      }
+    } catch (error: any) {
+      next(error);
     }
   }
 

@@ -13,6 +13,10 @@ import mongoose from 'mongoose';
 
 interface GetOrdersFilter {
   status?: OrderStatus;
+  createdAt?: {
+    $gte?: Date;
+    $lte?: Date;
+  };
 }
 
 export const getAllOrders = async (
@@ -26,12 +30,24 @@ export const getAllOrders = async (
       getOrdersFilterSchema
     );
 
-    const { status, page, limit, sort_by, sort_order } = data;
+    const { status, start_date, end_date, page, limit, sort_by, sort_order } =
+      data;
 
     const filter: GetOrdersFilter = {};
 
     if (status) {
       filter.status = status;
+    }
+
+    if (start_date) {
+      filter.createdAt = { $gte: new Date(start_date) };
+    }
+
+    if (end_date) {
+      filter.createdAt = {
+        ...filter.createdAt,
+        $lte: new Date(end_date),
+      };
     }
 
     const paginationResult = await paginateQuery({

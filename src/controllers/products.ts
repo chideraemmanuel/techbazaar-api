@@ -31,8 +31,8 @@ interface GetProductsFilter {
   name?: { $regex: string; $options: 'i' };
   brand?: mongoose.Types.ObjectId;
   price?: {
-    $gte: number;
-    $lte: number;
+    $gte?: number;
+    $lte?: number;
   };
   category?: ProductCategory;
   is_featured?: boolean;
@@ -53,7 +53,8 @@ export const getAvailableProducts = async (
     const {
       search_query,
       brand,
-      price_range,
+      min_price,
+      max_price,
       category,
       is_featured,
       page,
@@ -82,17 +83,12 @@ export const getAvailableProducts = async (
       filter.brand = brandExists._id as mongoose.Types.ObjectId;
     }
 
-    if (price_range) {
-      const [min_price, max_price] = price_range.split('-').map(Number);
-
-      if (min_price > max_price) {
-        throw new HttpError(
-          'Minimum price cannot be greater than maximum price in price range',
-          400
-        );
-      }
-
+    if (min_price && max_price) {
       filter.price = { $gte: min_price, $lte: max_price };
+    } else if (min_price) {
+      filter.price = { $gte: min_price };
+    } else if (max_price) {
+      filter.price = { $lte: max_price };
     }
 
     if (category) {
@@ -100,7 +96,7 @@ export const getAvailableProducts = async (
     }
 
     if (is_featured) {
-      filter.is_featured = is_featured === 'true' ? true : false;
+      filter.is_featured = is_featured;
     }
 
     const paginationResult = await paginateQuery({
@@ -136,7 +132,8 @@ export const getRandomAvailableProducts = async (
 
     const {
       brand,
-      price_range,
+      min_price,
+      max_price,
       category,
       is_featured,
       limit,
@@ -161,17 +158,12 @@ export const getRandomAvailableProducts = async (
       filter.brand = brandExists._id as mongoose.Types.ObjectId;
     }
 
-    if (price_range) {
-      const [min_price, max_price] = price_range.split('-').map(Number);
-
-      if (min_price > max_price) {
-        throw new HttpError(
-          'Minimum price cannot be greater than maximum price in price range',
-          400
-        );
-      }
-
+    if (min_price && max_price) {
       filter.price = { $gte: min_price, $lte: max_price };
+    } else if (min_price) {
+      filter.price = { $gte: min_price };
+    } else if (max_price) {
+      filter.price = { $lte: max_price };
     }
 
     if (category) {
@@ -179,7 +171,7 @@ export const getRandomAvailableProducts = async (
     }
 
     if (is_featured) {
-      filter.is_featured = is_featured === 'true' ? true : false;
+      filter.is_featured = is_featured;
     }
 
     // set max limit to 50
@@ -233,7 +225,8 @@ export const getAllProducts = async (
     const {
       search_query,
       brand,
-      price_range,
+      min_price,
+      max_price,
       category,
       is_featured,
       is_archived,
@@ -264,17 +257,12 @@ export const getAllProducts = async (
       filter.brand = brandExists._id as mongoose.Types.ObjectId;
     }
 
-    if (price_range) {
-      const [min_price, max_price] = price_range.split('-').map(Number);
-
-      if (min_price > max_price) {
-        throw new HttpError(
-          'Minimum price cannot be greater than maximum price in price range',
-          400
-        );
-      }
-
+    if (min_price && max_price) {
       filter.price = { $gte: min_price, $lte: max_price };
+    } else if (min_price) {
+      filter.price = { $gte: min_price };
+    } else if (max_price) {
+      filter.price = { $lte: max_price };
     }
 
     if (category) {
@@ -282,15 +270,15 @@ export const getAllProducts = async (
     }
 
     if (is_featured) {
-      filter.is_featured = is_featured === 'true' ? true : false;
+      filter.is_featured = is_featured;
     }
 
     if (is_archived) {
-      filter.is_archived = is_archived === 'true' ? true : false;
+      filter.is_archived = is_archived;
     }
 
     if (is_deleted) {
-      filter.is_deleted = is_deleted === 'true' ? true : false;
+      filter.is_deleted = is_deleted;
     }
 
     const paginationResult = await paginateQuery({
@@ -401,25 +389,21 @@ export const getRelatedProducts = async (
       getRelatedProductsFilterSchema
     );
 
-    const { price_range, is_featured, limit, sort_by, sort_order } = data;
+    const { min_price, max_price, is_featured, limit, sort_by, sort_order } =
+      data;
 
     const filter: GetProductsFilter = {};
 
-    if (price_range) {
-      const [min_price, max_price] = price_range.split('-').map(Number);
-
-      if (min_price > max_price) {
-        throw new HttpError(
-          'Minimum price cannot be greater than maximum price in price range',
-          400
-        );
-      }
-
+    if (min_price && max_price) {
       filter.price = { $gte: min_price, $lte: max_price };
+    } else if (min_price) {
+      filter.price = { $gte: min_price };
+    } else if (max_price) {
+      filter.price = { $lte: max_price };
     }
 
     if (is_featured) {
-      filter.is_featured = is_featured === 'true' ? true : false;
+      filter.is_featured = is_featured;
     }
 
     // set max limit to 50

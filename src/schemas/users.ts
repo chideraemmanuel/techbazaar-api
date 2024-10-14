@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { NAME_REGEX, PASSWORD_REGEX } from '../lib/constants';
 import z from 'zod';
+import isValidISODate from 'lib/is-valid-ISO-date';
 
 export const updateCurrentUserSchema = z.object({
   first_name: z
@@ -92,7 +93,20 @@ export const getUserOrdersFilterSchema = z
     status: z
       .enum(['pending', 'dispatched', 'shipped', 'delivered'])
       .optional(),
-    // date_range: z.string().optional(), // TODO: implement this..?
+    start_date: z
+      .string()
+      .optional()
+      .refine(isValidISODate, {
+        message: 'Invalid start_date. Must be in YYYY-MM-DD format.',
+      })
+      .transform((value) => new Date(value)),
+    end_date: z
+      .string()
+      .optional()
+      .refine(isValidISODate, {
+        message: 'Invalid end_date. Must be in YYYY-MM-DD format.',
+      })
+      .transform((value) => new Date(value)),
     page: z
       .string()
       .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
@@ -104,6 +118,20 @@ export const getUserOrdersFilterSchema = z
     sort_by: z.enum(['date_created', 'date_updated']).optional(),
     sort_order: z.enum(['ascending', 'descending']).optional(),
   })
+  .refine(
+    (data) => {
+      if (data.start_date && data.end_date) {
+        const startDate = new Date(data.start_date);
+        const endDate = new Date(data.end_date);
+        return startDate <= endDate;
+      }
+      return true; // If one or both dates are missing, skip this validation
+    },
+    {
+      message: 'start_date must be before or equal to end_date.',
+      path: ['end_date'], // Attach the error to the end_date field
+    }
+  )
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
     message: `Sorting order isn't specified`,
@@ -153,22 +181,22 @@ const addressSchema = z.object({
     .string({
       required_error: 'Street is required',
     })
-    .min(3, 'Street cannot be less than  characters'),
+    .min(1, 'Street cannot be empty'),
   city: z
     .string({
-      required_error: 'Street is required',
+      required_error: 'City is required',
     })
-    .min(3, 'Street cannot be less than  characters'),
+    .min(2, 'City cannot be less than 2 characters'),
   state: z
     .string({
-      required_error: 'Street is required',
+      required_error: 'State is required',
     })
-    .min(3, 'Street cannot be less than  characters'),
+    .min(2, 'State cannot be less than 2 characters'),
   country: z
     .string({
-      required_error: 'Street is required',
+      required_error: 'Country is required',
     })
-    .min(3, 'Street cannot be less than  characters'),
+    .min(3, 'Country cannot be less than 3 characters'),
 });
 
 export const placeOrderSchema = z.object({
