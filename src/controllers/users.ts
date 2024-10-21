@@ -68,8 +68,8 @@ export const getAllUsers = async (
       };
     }
 
-    if (email_verified) {
-      filter.email_verified = email_verified === 'true' ? true : false;
+    if (email_verified !== undefined) {
+      filter.email_verified = email_verified;
     }
 
     if (auth_type) {
@@ -80,8 +80,8 @@ export const getAllUsers = async (
       filter.role = role;
     }
 
-    if (disabled) {
-      filter.disabled = disabled === 'true' ? true : false;
+    if (disabled !== undefined) {
+      filter.disabled = disabled;
     }
 
     const paginationResult = await paginateQuery({
@@ -798,18 +798,27 @@ export const cancelOrder = async (
       );
     }
 
+    if (order.status === 'cancelled') {
+      throw new HttpError('Order has already been cancelled.', 422);
+    }
+
     if (
-      order.status === 'shipped' ||
+      order.status === 'in-transit' ||
       order.status === 'dispatched' ||
+      order.status === 'partially-shipped' ||
+      order.status === 'shipped' ||
+      order.status === 'out-for-delivery' ||
       order.status === 'delivered'
     ) {
       throw new HttpError(
-        'Cannot cancel dispatched, shipped or delivered orders',
+        'Orders that have been shipped, dispatched or delivered cannot be cancelled.',
         422
       );
     }
 
-    await order.deleteOne();
+    order.status = 'cancelled';
+    await order.save();
+    // await order.deleteOne();
 
     // loop through ordered items and update stock count for each
     for (const order_item of order.items) {
@@ -817,7 +826,7 @@ export const cancelOrder = async (
 
       const product = await Product.findOne({
         _id: product_id,
-        is_archived: false,
+        // is_archived: false,
         is_deleted: false,
       });
 

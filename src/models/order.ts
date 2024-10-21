@@ -28,7 +28,16 @@ export interface OrderBillingAddress {
   address: OrderAddress;
 }
 
-export type OrderStatus = 'pending' | 'dispatched' | 'shipped' | 'delivered';
+export type OrderStatus =
+  | 'pending'
+  | 'processing'
+  | 'in-transit'
+  | 'dispatched'
+  | 'partially-shipped'
+  | 'out-for-delivery'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
 
 export interface OrderSchemaInterface
   extends Document<mongoose.Types.ObjectId> {
@@ -98,7 +107,17 @@ const orderSchema: Schema<OrderSchemaInterface> = new Schema(
     status: {
       type: String,
       default: 'pending',
-      enum: ['pending', 'dispatched', 'shipped', 'delivered'],
+      enum: [
+        'pending',
+        'processing',
+        'in-transit',
+        'dispatched',
+        'partially-shipped',
+        'out-for-delivery',
+        'shipped',
+        'delivered',
+        'cancelled',
+      ],
     },
     total_price: {
       type: Number,

@@ -55,8 +55,8 @@ export const getAllBrands = async (
       filter.name = { $regex: search_query, $options: 'i' };
     }
 
-    if (is_deleted) {
-      filter.is_deleted = is_deleted === 'true' ? true : false;
+    if (is_deleted !== undefined) {
+      filter.is_deleted = is_deleted;
     }
 
     if (paginated) {
