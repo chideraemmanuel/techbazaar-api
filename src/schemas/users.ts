@@ -1,135 +1,90 @@
-import mongoose from 'mongoose';
-import { NAME_REGEX, PASSWORD_REGEX } from '../lib/constants';
 import z from 'zod';
-import isValidISODate from 'lib/is-valid-ISO-date';
+import {
+  AUTH_TYPE_SCHEMA,
+  booleanEnum,
+  booleanSchema,
+  FIRST_NAME_SCHEMA,
+  ISODateSchema,
+  LAST_NAME_SCHEMA,
+  numberFilterchema,
+  ObjectIdSchema,
+  ORDER_STATUS_SCHEMA,
+  PASSWORD_SCHEMA,
+  ROLE_SCHEMA,
+  SEARCH_QUERY_SCHEMA,
+  SORT_ORDER_SCHEMA,
+} from './constants';
+import validateISODateRange from 'lib/validate-ISO-date-range';
 
 export const updateCurrentUserSchema = z.object({
-  first_name: z
-    .string({
-      invalid_type_error: 'First name should be a string value',
-    })
-    .min(3, 'First name cannot be less than 3 characters')
-    .refine(
-      (value) => NAME_REGEX.regex.test(value),
-      NAME_REGEX.hint.bind({ label: 'First name' })
-    )
-    .optional(),
-  last_name: z
-    .string({
-      invalid_type_error: 'Last name should be a string value',
-    })
-    .min(3, 'Last name cannot be less than 3 characters')
-    .refine(
-      (value) => NAME_REGEX.regex.test(value),
-      NAME_REGEX.hint.bind({ label: 'Last name' })
-    )
-    .optional(),
-  password: z
-    .string()
-    .min(1, 'Password cannot be empty')
-    .refine((value) => PASSWORD_REGEX.regex.test(value), PASSWORD_REGEX.hint)
-    .optional(),
+  first_name: FIRST_NAME_SCHEMA.optional(),
+  last_name: LAST_NAME_SCHEMA.optional(),
+  password: PASSWORD_SCHEMA.optional(),
 });
 
 export const getCurrentUserCartFilterSchema = z
   .object({
-    page: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
+    page: numberFilterchema('page').optional(),
+    limit: numberFilterchema('limit').optional(),
+    sort_by: z
+      .enum(['date_created', 'date_updated'], {
+        invalid_type_error: 'Invalid sort_by value provided.',
+      })
       .optional(),
-    limit: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
-      .optional(),
-    sort_by: z.enum(['date_created', 'date_updated']).optional(),
-    sort_order: z.enum(['ascending', 'descending']).optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
   })
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
-    message: `Sorting order isn't specified`,
+    message: `sort_order must be specified if sort_by is specified.`,
   });
 
 export const addItemToCartSchema = z.object({
-  product: z
-    .instanceof(mongoose.Types.ObjectId)
-    .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
-  // .string()
-  // .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
+  product: ObjectIdSchema('product'),
 });
 
 export const getUsersFilterSchema = z
   .object({
-    search_query: z
-      .string()
-      .min(1, 'Search query string cannot be empty')
+    search_query: SEARCH_QUERY_SCHEMA.optional(),
+    email_verified: booleanEnum('email_verified').optional(),
+    auth_type: AUTH_TYPE_SCHEMA.optional(),
+    role: ROLE_SCHEMA.optional(),
+    disabled: booleanEnum('email_verified').optional(),
+    page: numberFilterchema('page').optional(),
+    limit: numberFilterchema('limit').optional(),
+    sort_by: z
+      .enum(['first_name', 'last_name', 'email'], {
+        invalid_type_error: 'Invalid sort_by value provided.',
+      })
       .optional(),
-    email_verified: z.enum(['true', 'false']).optional(),
-    auth_type: z.enum(['manual', 'google']).optional(),
-    role: z.enum(['user', 'admin']).optional(),
-    disabled: z.enum(['true', 'false']).optional(),
-    page: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
-      .optional(),
-    limit: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
-      .optional(),
-    sort_by: z.enum(['first_name', 'last_name', 'email']).optional(),
-    sort_order: z.enum(['ascending', 'descending']).optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
   })
   .refine((data) => !data.sort_by || data.sort_order, {
     path: ['sort_order'],
-    message: `Sorting order isn't specified`,
+    message: `sort_order must be specified if sort_by is specified.`,
   });
 
 export const updateUserStatusSchema = z.object({
-  role: z.enum(['user', 'admin']).optional(),
-  disabled: z.boolean().optional(),
+  role: ROLE_SCHEMA.optional(),
+  disabled: booleanSchema('disabled').optional(),
 });
 
 export const getUserOrdersFilterSchema = z
   .object({
-    status: z
-      .enum(['pending', 'dispatched', 'shipped', 'delivered'])
-      .optional(),
-    start_date: z
-      .string()
-      .optional()
-      .refine(isValidISODate, {
-        message: 'Invalid start_date. Must be in YYYY-MM-DD format.',
-      })
-      .transform((value) => new Date(value)),
-    end_date: z
-      .string()
-      .optional()
-      .refine(isValidISODate, {
-        message: 'Invalid end_date. Must be in YYYY-MM-DD format.',
-      })
-      .transform((value) => new Date(value)),
-    page: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
-      .optional(),
-    limit: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
-      .optional(),
+    status: ORDER_STATUS_SCHEMA.optional(),
+    start_date: ISODateSchema('start_date').optional(),
+    end_date: ISODateSchema('end_date').optional(),
+    page: numberFilterchema('page').optional(),
+    limit: numberFilterchema('limit').optional(),
     sort_by: z.enum(['date_created', 'date_updated']).optional(),
-    sort_order: z.enum(['ascending', 'descending']).optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
   })
   .refine(
     (data) => {
-      if (data.start_date && data.end_date) {
-        const startDate = new Date(data.start_date);
-        const endDate = new Date(data.end_date);
-        return startDate <= endDate;
-      }
-      return true; // If one or both dates are missing, skip this validation
+      validateISODateRange(data.start_date, data.end_date);
     },
     {
       message: 'start_date must be before or equal to end_date.',
-      path: ['end_date'], // Attach the error to the end_date field
+      path: ['end_date'],
     }
   )
   .refine((data) => !data.sort_by || data.sort_order, {
@@ -138,37 +93,17 @@ export const getUserOrdersFilterSchema = z
   });
 
 const orderItemSchema = z.object({
-  product: z
-    .instanceof(mongoose.Types.ObjectId)
-    .refine((value) => mongoose.isValidObjectId(value), 'Invalid product ID'),
+  product: ObjectIdSchema('product'),
   quantity: z
     .number({
-      invalid_type_error: 'Product quantity should be a number',
+      invalid_type_error: 'Invalid quantity. Must be a number.',
     })
     .min(1, 'Minimum product quantity is 1'),
 });
 
 const receipentSchema = z.object({
-  first_name: z
-    .string({
-      required_error: `Receipent's first name is required`,
-      invalid_type_error: `Receipent's first name should be a string value`,
-    })
-    .min(3, `Receipent's first name cannot be less than 3 characters`)
-    .refine(
-      (value) => NAME_REGEX.regex.test(value),
-      NAME_REGEX.hint.bind({ label: `Receipent's first name` })
-    ),
-  last_name: z
-    .string({
-      required_error: `Receipent's last name is required`,
-      invalid_type_error: `Receipent's last name should be a string value`,
-    })
-    .min(3, `Receipent's last name cannot be less than 3 characters`)
-    .refine(
-      (value) => NAME_REGEX.regex.test(value),
-      NAME_REGEX.hint.bind({ label: `Receipent's last name` })
-    ),
+  first_name: FIRST_NAME_SCHEMA,
+  last_name: LAST_NAME_SCHEMA,
   mobile_number: z.number({
     // TODO: validate number properly
     required_error: `Receipent's mobile number is required`,

@@ -1,23 +1,24 @@
 import z from 'zod';
+import {
+  ACCEPTED_IMAGE_TYPES,
+  booleanEnum,
+  booleanSchema,
+  MAX_FILE_SIZE,
+  numberFilterchema,
+  SEARCH_QUERY_SCHEMA,
+  SORT_ORDER_SCHEMA,
+  stringSchema,
+} from './constants';
 
 export const getAllBrandsFilterSchema = z
   .object({
-    search_query: z
-      .string()
-      .min(1, 'Search query string cannot be empty')
-      .optional(),
-    is_deleted: z.enum(['true', 'false']).optional(),
+    search_query: SEARCH_QUERY_SCHEMA.optional(),
+    is_deleted: booleanEnum('is_deleted').optional(),
     sort_by: z.enum(['name', 'date_created', 'date_updated']).optional(),
-    sort_order: z.enum(['ascending', 'descending']).optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
     paginated: z.literal('true').optional(),
-    page: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
-      .optional(),
-    limit: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
-      .optional(),
+    page: numberFilterchema('page').optional(),
+    limit: numberFilterchema('limit').optional(),
   })
   .refine((data) => !data.page || data.paginated, {
     path: ['page'],
@@ -34,21 +35,12 @@ export const getAllBrandsFilterSchema = z
 
 export const getAvailableBrandsFilterSchema = z
   .object({
-    search_query: z
-      .string()
-      .min(1, 'Search query string cannot be empty')
-      .optional(),
+    search_query: SEARCH_QUERY_SCHEMA.optional(),
     sort_by: z.enum(['name', 'date_created', 'date_updated']).optional(),
-    sort_order: z.enum(['ascending', 'descending']).optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
     paginated: z.literal('true').optional(),
-    page: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
-      .optional(),
-    limit: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
-      .optional(),
+    page: numberFilterchema('page').optional(),
+    limit: numberFilterchema('limit').optional(),
   })
   .refine((data) => !data.page || data.paginated, {
     path: ['page'],
@@ -63,20 +55,8 @@ export const getAvailableBrandsFilterSchema = z
     message: `Sorting order isn't specified`,
   });
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-];
-
 export const addBrandSchema = z.object({
-  name: z
-    .string({
-      required_error: 'Brand name is required',
-    })
-    .min(1, 'Brand name cannot be empty'),
+  name: stringSchema('brand name'),
   logo: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
@@ -88,7 +68,7 @@ export const addBrandSchema = z.object({
 });
 
 export const brandUpdateSchema = z.object({
-  name: z.string().min(1, 'Brand name cannot be empty').optional(),
+  name: stringSchema('brand name').optional(),
   logo: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
@@ -97,5 +77,5 @@ export const brandUpdateSchema = z.object({
       'Only JPEG, JPG, PNG, and WebP formats are supported.'
     )
     .optional(),
-  is_deleted: z.boolean().optional(),
+  is_deleted: booleanSchema('is_deleted').optional(),
 });

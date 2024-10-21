@@ -1,4 +1,6 @@
-export const PASSWORD_REGEX = {
+import z from 'zod';
+
+export const PASSWORD_VALIDATION = {
   regex: /^(?=.*[0-9])(?=.*[a-z])(?=.*\W)(?!.* ).{8,16}$/,
   hint: 'Password must be 8-16 characters long, and contain at least one numeric digit, and special character',
 };
@@ -8,14 +10,16 @@ export const EMAIL_REGEX = {
   hint: 'Invalid email address',
 };
 
-export const NAME_REGEX = {
-  regex: /^[a-zA-Z]{3,}$/i,
-  hint: function () {
-    return `${
-      this.label || 'Name'
-    } should be at least 3 characters long, and can only contain alphabets`;
-  },
-};
+// export const NAME_REGEX = {
+//   regex: /^[a-zA-Z]{3,}$/i,
+//   hint: function () {
+//     return `${
+//       this.label || 'Name'
+//     } should be at least 3 characters long, and can only contain alphabets`;
+//   },
+// };
+
+export const NAME_REGEX = /^[a-zA-ZÀ-ÖØ-öø-ÿ' -]+$/;
 
 export const PRODUCT_CATEGORIES_ARRAY = [
   'smartphones',

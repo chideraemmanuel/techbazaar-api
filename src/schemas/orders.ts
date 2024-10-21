@@ -1,35 +1,21 @@
-import isValidISODate from 'lib/is-valid-ISO-date';
+import isValidISODate from '../lib/is-valid-ISO-date';
 import z from 'zod';
+import {
+  ISODateSchema,
+  numberFilterchema,
+  ORDER_STATUS_SCHEMA,
+  SORT_ORDER_SCHEMA,
+} from './constants';
 
 export const getOrdersFilterSchema = z
   .object({
-    status: z
-      .enum(['pending', 'dispatched', 'shipped', 'delivered'])
-      .optional(),
-    start_date: z
-      .string()
-      .optional()
-      .refine(isValidISODate, {
-        message: 'Invalid start_date. Must be in YYYY-MM-DD format.',
-      })
-      .transform((value) => new Date(value)),
-    end_date: z
-      .string()
-      .optional()
-      .refine(isValidISODate, {
-        message: 'Invalid end_date. Must be in YYYY-MM-DD format.',
-      })
-      .transform((value) => new Date(value)),
-    page: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Page should be a numeric value')
-      .optional(),
-    limit: z
-      .string()
-      .refine((value) => /^\d$/.test(value), 'Limit should be a numeric value')
-      .optional(),
+    status: ORDER_STATUS_SCHEMA.optional(),
+    start_date: ISODateSchema('start_date').optional(),
+    end_date: ISODateSchema('end_date').optional(),
+    page: numberFilterchema('page').optional(),
+    limit: numberFilterchema('limit').optional(),
     sort_by: z.enum(['date_created', 'date_updated']).optional(),
-    sort_order: z.enum(['ascending', 'descending']).optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
   })
   .refine(
     (data) => {
@@ -51,5 +37,5 @@ export const getOrdersFilterSchema = z
   });
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(['pending', 'dispatched', 'shipped', 'delivered']).optional(),
+  status: ORDER_STATUS_SCHEMA.optional(),
 });

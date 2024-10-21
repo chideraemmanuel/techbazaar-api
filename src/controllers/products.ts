@@ -428,7 +428,13 @@ export const getRelatedProducts = async (
       { $sample: { size: limitNumber } },
       sort_by &&
         sort_order && {
-          $sort: { [sort_by]: sort_order === 'ascending' ? 1 : -1 },
+          $sort: {
+            [sort_by === 'date_created'
+              ? 'createdAt'
+              : sort_by === 'date_updated'
+              ? 'updatedAt'
+              : sort_by]: sort_order === 'ascending' ? 1 : -1,
+          },
         },
     ]);
 
