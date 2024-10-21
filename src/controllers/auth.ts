@@ -7,6 +7,7 @@ import Session from '../models/session';
 import User from '../models/user';
 // import { nanoid } from 'nanoid';
 import {
+  googleOAuthURIParamSchema,
   OTPResendSchema,
   passwordResetCompletionSchema,
   passwordResetRequestSchema,
@@ -153,6 +154,255 @@ export const loginUser = async (
         data: user_return,
       });
   } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getGoogleOAuthURI = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = validateSchema<z.infer<typeof googleOAuthURIParamSchema>>(
+      request.query,
+      googleOAuthURIParamSchema
+    );
+
+    const { success_redirect_path, error_redirect_path } = data;
+
+    const base_auth_uri = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+    const redirect_uri =
+      success_redirect_path && error_redirect_path
+        ? `${process.env.API_BASE_URL}/auth/google?success_redirect_path=${success_redirect_path}&error_redirect_path=${error_redirect_path}`
+        : `${process.env.API_BASE_URL}/auth/google`;
+
+    const options = {
+      response_type: 'code',
+      client_id: process.env.GOOGLE_AUTH_CLIENT_ID!,
+      redirect_uri,
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+      ].join(' '),
+      access_type: 'offline',
+    };
+
+    const queryStrings = new URLSearchParams(options);
+
+    const full_auth_uri = `${base_auth_uri}?${queryStrings.toString()}`;
+
+    console.log('full_auth_uri', full_auth_uri);
+
+    response.json({ uri: full_auth_uri });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+interface GoogleResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string; // same scope that was used to generate the authentication uri
+  token_type: 'Bearer';
+  id_token: string;
+}
+
+interface GoogleUserData {
+  iss: 'https://accounts.google.com';
+  azp: string;
+  aud: string;
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  at_hash: string;
+  name: string;
+  picture: string;
+  given_name: string;
+  family_name: string;
+  locale: string;
+  iat: number;
+  exp: number;
+}
+
+export const authenticateUserWithGoogle = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  const data = validateSchema<z.infer<typeof googleOAuthURIParamSchema>>(
+    request.query,
+    googleOAuthURIParamSchema
+  );
+
+  const { success_redirect_path, error_redirect_path } = data;
+
+  try {
+    const { code } = request.query;
+
+    if (!code) {
+      if (success_redirect_path && error_redirect_path) {
+        response.redirect(
+          `${process.env.CLIENT_BASE_URL}${error_redirect_path}?error=authentication_failed`
+        );
+
+        return;
+      } else {
+        throw new HttpError('Authentication failed', 401);
+      }
+    }
+
+    const base_token_uri = 'https://oauth2.googleapis.com/token';
+
+    const redirect_uri =
+      success_redirect_path && error_redirect_path
+        ? `${process.env.API_BASE_URL}/auth/google?success_redirect_path=${success_redirect_path}&error_redirect_path=${error_redirect_path}`
+        : `${process.env.API_BASE_URL}/auth/google`;
+
+    const options = {
+      code,
+      client_id: process.env.GOOGLE_AUTH_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_AUTH_CLIENT_SECRET!,
+      redirect_uri,
+      grant_type: 'authorization_code',
+    };
+
+    const res = await fetch(base_token_uri, {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
+
+    if (!res.ok) {
+      if (success_redirect_path && error_redirect_path) {
+        response.redirect(
+          `${process.env.CLIENT_BASE_URL}${error_redirect_path}?error=authentication_failed`
+        );
+
+        return;
+      } else {
+        throw new HttpError('Authentication failed', 422);
+      }
+    }
+
+    // @ts-ignore
+    const google_response: GoogleResponse = await res.json();
+
+    // @ts-ignore
+    const user_data: GoogleUserData = jwt.decode(google_response.id_token);
+
+    console.log('user data', user_data);
+
+    const { email, given_name, family_name, picture } = user_data;
+
+    const user = await User.findOne({ email, email_verified: true });
+
+    if (user?.auth_type === 'manual') {
+      if (success_redirect_path && error_redirect_path) {
+        response.redirect(
+          `${process.env.CLIENT_BASE_URL}${error_redirect_path}?error=account_exists`
+        );
+
+        return;
+      } else {
+        throw new HttpError(
+          'User with the provided email address already exists. Sign in with password instead.',
+          422
+        );
+      }
+    }
+
+    if (user?.auth_type === 'google') {
+      if (user.disabled) {
+        if (success_redirect_path && error_redirect_path) {
+          response.redirect(
+            `${process.env.CLIENT_BASE_URL}${error_redirect_path}?error=unauthorized_access`
+          );
+
+          return;
+        } else {
+          throw new HttpError('Unauthorized access', 401);
+        }
+      }
+
+      // user not disabled
+      // create session and login
+      const { nanoid } = await import('nanoid');
+      const session_id = nanoid();
+
+      await Session.create({
+        user: user._id,
+        session_id,
+      });
+
+      if (success_redirect_path && error_redirect_path) {
+        response.redirect(
+          `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=false`
+        );
+      } else {
+        response
+          .status(201)
+          .cookie('session_id', session_id, {
+            maxAge: 60 * 60 * 24, // 24 hours
+            httpOnly: true,
+            ...(process.env.NODE_ENV === 'production' && { secure: true }),
+          })
+          .json({
+            message: `Login successful.`,
+            data: user,
+          });
+      }
+
+      return;
+    }
+
+    // account with email doesn't exist
+    // create new account and session, and sign in
+    const new_user = await User.create({
+      first_name: given_name,
+      last_name: family_name,
+      email,
+      email_verified: true,
+      auth_type: 'google',
+    });
+
+    // TODO: send welcome email..?
+
+    const { nanoid } = await import('nanoid');
+    const session_id = nanoid();
+
+    await Session.create({
+      user: user._id,
+      session_id,
+    });
+
+    if (success_redirect_path && error_redirect_path) {
+      response.redirect(
+        `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=true`
+      );
+    } else {
+      response
+        .status(201)
+        .cookie('session_id', session_id, {
+          maxAge: 60 * 60 * 24, // 24 hours
+          httpOnly: true,
+          ...(process.env.NODE_ENV === 'production' && { secure: true }),
+        })
+        .json({
+          message: `Account created successfully.`,
+          data: new_user,
+        });
+    }
+  } catch (error: any) {
+    if (success_redirect_path && error_redirect_path) {
+      response.redirect(
+        `${process.env.CLIENT_BASE_URL}${error_redirect_path}?error=authentication_failed`
+      );
+
+      return;
+    }
+
     next(error);
   }
 };

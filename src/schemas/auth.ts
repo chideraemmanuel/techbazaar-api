@@ -20,6 +20,30 @@ export const userLoginSchema = z.object({
   password: stringSchema('password'),
 });
 
+export const googleOAuthURIParamSchema = z
+  .object({
+    success_redirect_path: stringSchema('success_redirect_path')
+      .refine((value) => value.startsWith('/'), 'Invalid success_redirect_path')
+      .optional(),
+    error_redirect_path: stringSchema('error_redirect_path')
+      .refine((value) => value.startsWith('/'), 'Invalid error_redirect_path')
+      .optional(),
+  })
+  .refine(
+    (value) => !value.success_redirect_path || value.error_redirect_path,
+    {
+      path: ['error_redirect_path'],
+      message: 'error_redirect_path is not specified.',
+    }
+  )
+  .refine(
+    (value) => !value.error_redirect_path || value.success_redirect_path,
+    {
+      path: ['success_redirect_path'],
+      message: 'success_redirect_path is not specified.',
+    }
+  );
+
 export const userEmailVerificationSchema = z.object({
   email: EMAIL_SCHEMA,
   OTP: z
