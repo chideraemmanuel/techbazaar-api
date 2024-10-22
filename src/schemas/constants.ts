@@ -133,7 +133,7 @@ export const ORDER_STATUS_SCHEMA = z.enum([
   'pending',
   'processing',
   'in-transit',
-  'dispatched',
+  // 'dispatched',
   'partially-shipped',
   'out-for-delivery',
   'shipped',

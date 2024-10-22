@@ -729,14 +729,14 @@ export const placeOrder = async (
 
       if (product.is_archived || product.stock === 0) {
         throw new HttpError(
-          `Product with ID ${product_id} is unavailable or out of stock`,
+          `${product.name} is unavailable or out of stock`,
           422
         );
       }
 
       if (quantity > product.stock) {
         throw new HttpError(
-          `The desired quantity of the product with ID ${product_id} exceeds the number of items in stock`,
+          `The desired quantity of the ${product.name} exceeds the number of items in stock`,
           422
         );
       }
@@ -804,7 +804,7 @@ export const cancelOrder = async (
 
     if (
       order.status === 'in-transit' ||
-      order.status === 'dispatched' ||
+      // order.status === 'dispatched' ||
       order.status === 'partially-shipped' ||
       order.status === 'shipped' ||
       order.status === 'out-for-delivery' ||

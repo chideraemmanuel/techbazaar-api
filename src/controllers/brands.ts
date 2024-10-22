@@ -231,6 +231,13 @@ export const addBrand = async (
   }
 };
 
+interface BrandUpdates {
+  name?: string;
+  logo?: string;
+  is_deleted?: boolean;
+  deleted_at?: Date | null;
+}
+
 export const updateBrand = async (
   request: AuthorizedRequest,
   response: Response,
@@ -260,8 +267,10 @@ export const updateBrand = async (
 
     const { name, logo, is_deleted } = data;
 
+    const updates: BrandUpdates = {};
+
     if (name) {
-      brand.name = name;
+      updates.name = name;
     }
 
     if (logo) {
@@ -270,30 +279,34 @@ export const updateBrand = async (
       const snapshot = await uploadBytes(storageRef, logo);
       const logo_url = await getDownloadURL(snapshot.ref);
 
-      brand.logo = logo_url;
+      updates.logo = logo_url;
     }
 
     if (is_deleted !== undefined) {
-      brand.is_deleted = is_deleted;
+      updates.is_deleted = is_deleted;
+
+      if (is_deleted === true) {
+        updates.deleted_at = new Date(Date.now());
+      } else {
+        updates.deleted_at = null;
+      }
     }
 
-    const updated_brand = await brand.save();
+    const updated_brand = await Brand.findByIdAndUpdate(brand._id, updates, {
+      new: true,
+    }).lean();
 
-    // TODO: figure out how to persist previous logo url in a variable and delete here
-    // // delete previous brand logo from firebase if new logo is uploaded
-    // if (brand.logo && logo) {
-    //   const storage = getStorage(app);
+    // delete previous brand logo from firebase if new logo is uploaded
+    if (logo && brand.logo) {
+      const storage = getStorage(app);
 
-    //   // Extract the file path from the full image URL
-    //     const decodedUrl = decodeURIComponent(previous_logo_url);
-    //   // const decodedUrl = decodeURIComponent(brand.logo);
-    //   const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+      // Extract the file path from the full image URL
+      const decodedUrl = decodeURIComponent(brand.logo);
+      const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
-    //   const previousBrandLogoRef = ref(storage, filePath);
-    //   await deleteObject(previousBrandLogoRef);
-    // }
-
-    // const updated_brand = await Brand.findById(brand._id).lean();
+      const previousBrandLogoRef = ref(storage, filePath);
+      await deleteObject(previousBrandLogoRef);
+    }
 
     response.json({
       message: 'Brand updated successfully',
@@ -326,6 +339,7 @@ export const deleteBrand = async (
 
     if (productWithBrand) {
       brand.is_deleted = true;
+      brand.deleted_at = new Date(Date.now());
 
       await brand.save();
 

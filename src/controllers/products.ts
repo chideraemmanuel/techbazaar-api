@@ -502,6 +502,20 @@ export const addProduct = async (
   }
 };
 
+interface ProductUpdates {
+  name?: string;
+  brand?: mongoose.Types.ObjectId;
+  description?: string;
+  category?: ProductCategory;
+  image?: string;
+  price?: number;
+  stock?: number;
+  is_archived?: boolean;
+  is_featured?: boolean;
+  is_deleted?: boolean;
+  deleted_at?: Date | null;
+}
+
 export const updateProduct = async (
   request: AuthorizedRequest,
   response: Response,
@@ -541,8 +555,10 @@ export const updateProduct = async (
       is_deleted,
     } = data;
 
+    const updates: ProductUpdates = {};
+
     if (name) {
-      product.name = name;
+      updates.name = name;
     }
 
     if (brand) {
@@ -556,18 +572,16 @@ export const updateProduct = async (
         throw new HttpError('The specified brand does not exist', 404);
       }
 
-      product.brand = brandExists._id as mongoose.Types.ObjectId;
+      updates.brand = brandExists._id as mongoose.Types.ObjectId;
     }
 
     if (description) {
-      product.description = description;
+      updates.description = description;
     }
 
     if (category) {
-      product.category = category;
+      updates.category = category;
     }
-
-    // const previous_image_url = product.image;
 
     if (image) {
       const storage = getStorage(app);
@@ -578,41 +592,54 @@ export const updateProduct = async (
       const snapshot = await uploadBytes(storageRef, image);
       const image_url = await getDownloadURL(snapshot.ref);
 
-      product.image = image_url;
+      updates.image = image_url;
     }
 
     if (price) {
-      product.price = price;
+      updates.price = price;
     }
 
     if (stock) {
-      product.stock = stock;
+      if (stock === 0) {
+        updates.is_archived = true;
+      } else {
+        updates.is_archived = false;
+      }
+
+      updates.stock = stock;
     }
 
     if (is_featured !== undefined) {
-      product.is_featured = is_featured;
+      updates.is_featured = is_featured;
     }
 
     if (is_deleted !== undefined) {
-      product.is_deleted = is_deleted;
+      updates.is_deleted = is_deleted;
+
+      if (is_deleted === true) {
+        updates.deleted_at = new Date(Date.now());
+      } else {
+        updates.deleted_at = null;
+      }
     }
 
-    const updated_product = await product.save();
+    const updated_product = await Product.findByIdAndUpdate(
+      product._id,
+      updates,
+      { new: true }
+    ).lean();
 
-    // TODO: figure out how to persist previous image url in a variable and delete here
-    // // delete previous product image from firebase if new image is uploaded
-    // if (image) {
-    //   const storage = getStorage(app);
+    // delete previous product image from firebase if new image is uploaded
+    if (image && product.image) {
+      const storage = getStorage(app);
 
-    //   // Extract the file path from the full image URL
-    //   const decodedUrl = decodeURIComponent(previous_image_url);
-    //   const filePath = decodedUrl.split('/o/')[1].split('?')[0];
+      // Extract the file path from the full image URL
+      const decodedUrl = decodeURIComponent(product.image);
+      const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 
-    //   const previousProductImageRef = ref(storage, filePath);
-    //   await deleteObject(previousProductImageRef);
-    // }
-
-    // const updated_product = await Product.findById(product._id).lean();
+      const previousProductImageRef = ref(storage, filePath);
+      await deleteObject(previousProductImageRef);
+    }
 
     response.json({
       message: 'Product updated successfully',
@@ -641,6 +668,7 @@ export const deleteProduct = async (
       throw new HttpError('Product does not exist', 404);
     }
 
+    // TODO: implement this..?
     // const cartWithProduct = await Cart.findOne({ product: product._id })
     // const orderWithProduct = await Order.findOne({ product: product._id })
 
@@ -664,6 +692,7 @@ export const deleteProduct = async (
     // response.json({ message: 'Product deleted successfully' });
 
     product.is_deleted = true;
+    product.deleted_at = new Date(Date.now());
 
     await product.save();
 

@@ -32,21 +32,21 @@ const brandSchema: Schema<BrandSchemaInterface> = new Schema(
   { timestamps: true }
 );
 
-brandSchema.pre('save', function (next) {
-  try {
-    if (this.isModified('is_deleted')) {
-      if (this.is_deleted) {
-        this.deleted_at = new Date(Date.now());
-      } else {
-        delete this.deleted_at;
-      }
-    }
-  } catch (error: any) {
-    next(error);
-  }
+// brandSchema.pre('save', function (next) {
+//   try {
+//     if (this.isModified('is_deleted')) {
+//       if (this.is_deleted) {
+//         this.deleted_at = new Date(Date.now());
+//       } else {
+//         delete this.deleted_at;
+//       }
+//     }
+//   } catch (error: any) {
+//     next(error);
+//   }
 
-  next();
-});
+//   next();
+// });
 
 const Brand = model('Brand', brandSchema);
 

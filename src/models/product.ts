@@ -137,17 +137,17 @@ productSchema.pre('save', async function (next) {
     }
   }
 
-  if (this.isModified('is_deleted')) {
-    try {
-      if (this.is_deleted) {
-        this.deleted_at = new Date(Date.now());
-      } else {
-        delete this.deleted_at;
-      }
-    } catch (error: any) {
-      next(error);
-    }
-  }
+  // if (this.isModified('is_deleted')) {
+  //   try {
+  //     if (this.is_deleted) {
+  //       this.deleted_at = new Date(Date.now());
+  //     } else {
+  //       delete this.deleted_at;
+  //     }
+  //   } catch (error: any) {
+  //     next(error);
+  //   }
+  // }
 
   if (this.isModified('stock')) {
     try {
