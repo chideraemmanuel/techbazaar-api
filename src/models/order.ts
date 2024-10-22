@@ -1,6 +1,7 @@
 import mongoose, { Document, model, Schema } from 'mongoose';
 import mongooseAutoPopulate from 'mongoose-autopopulate';
 import { ProductSchemaInterface } from './product';
+import { BillingInformationInterfaceSchema } from './billing-information';
 
 export interface OrderItem {
   product: mongoose.Types.ObjectId;
@@ -10,22 +11,6 @@ export interface OrderItem {
 export interface PopulatedOrderItem {
   product: ProductSchemaInterface;
   quantity: number;
-}
-
-export interface OrderAddress {
-  street: string;
-  city: string;
-  state: string;
-  country: string;
-}
-
-export interface OrderBillingAddress {
-  receipent: {
-    first_name: string;
-    last_name: string;
-    mobile_number: string;
-  };
-  address: OrderAddress;
 }
 
 export type OrderStatus =
@@ -39,11 +24,18 @@ export type OrderStatus =
   | 'delivered'
   | 'cancelled';
 
+export type OrderBillingInformation = Omit<
+  BillingInformationInterfaceSchema,
+  keyof Document | 'user'
+> & {
+  _id: mongoose.Types.ObjectId;
+};
+
 export interface OrderSchemaInterface
   extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
   items: PopulatedOrderItem[];
-  billing: OrderBillingAddress;
+  billing_information: OrderBillingInformation;
   status: OrderStatus;
   total_price: number;
 }
@@ -70,7 +62,7 @@ const orderSchema: Schema<OrderSchemaInterface> = new Schema(
         },
       },
     ],
-    billing: {
+    billing_information: {
       receipent: {
         first_name: {
           type: String,

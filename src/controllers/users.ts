@@ -18,12 +18,14 @@ import mongoose from 'mongoose';
 import User, { UserAuthType, UserRole } from '../models/user';
 import paginateQuery from '../lib/paginate-query';
 import Order, {
+  OrderBillingInformation,
   OrderItem,
   OrderStatus,
   PopulatedOrderItem,
 } from '../models/order';
 import calculateSubTotal from '../lib/calculateSubTotal';
 import { read } from 'fs';
+import BillingInformation from 'models/billing-information';
 
 interface GetUsersFilter {
   email_verified?: boolean;
@@ -696,14 +698,14 @@ export const placeOrder = async (
   try {
     const user = request.user;
 
-    const { save_billing_info } = request.query; // TODO: implement this!
+    const { save_billing_information } = request.query;
 
     const data = validateSchema<z.infer<typeof placeOrderSchema>>(
       request.body,
       placeOrderSchema
     );
 
-    const { items, billing } = data;
+    const { items, billing_information, use_saved_billing_information } = data;
 
     // initialize variable to store order items with populated product field
     // this is to be used to calculate the total price of the order
@@ -744,10 +746,26 @@ export const placeOrder = async (
       populatedOrderItems.push({ product, quantity });
     }
 
+    let billing: OrderBillingInformation;
+
+    if (use_saved_billing_information) {
+      const saved_billing_information = await BillingInformation.findOne({
+        user: user._id,
+      }).lean();
+
+      if (!saved_billing_information) {
+        throw new HttpError('Billing information not found', 404);
+      }
+
+      billing = saved_billing_information;
+    } else {
+      billing = billing_information as OrderBillingInformation;
+    }
+
     const order = await Order.create({
       user: user._id,
       items,
-      billing,
+      billing_information: billing,
       status: 'pending',
       total_price: calculateSubTotal(populatedOrderItems),
     });
@@ -768,6 +786,21 @@ export const placeOrder = async (
     }
 
     await Cart.deleteMany({ user: user._id });
+
+    if (save_billing_information === 'true') {
+      const previous_billing_information = await BillingInformation.findOne({
+        user: user._id,
+      });
+
+      if (!previous_billing_information) {
+        const new_billing_information = await BillingInformation.create({
+          user: user._id,
+          ...billing,
+        });
+      }
+
+      await previous_billing_information.updateOne(billing);
+    }
 
     response
       .status(201)

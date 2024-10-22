@@ -104,7 +104,7 @@ const orderItemSchema = z.object({
 const receipentSchema = z.object({
   first_name: FIRST_NAME_SCHEMA,
   last_name: LAST_NAME_SCHEMA,
-  mobile_number: z.number({
+  mobile_number: z.string({
     // TODO: validate number properly
     required_error: `Receipent's mobile number is required`,
   }),
@@ -134,10 +134,23 @@ const addressSchema = z.object({
     .min(3, 'Country cannot be less than 3 characters'),
 });
 
-export const placeOrderSchema = z.object({
-  items: z.array(orderItemSchema),
-  billing: z.object({
-    receipent: receipentSchema,
-    address: addressSchema,
-  }),
-});
+export const placeOrderSchema = z
+  .object({
+    items: z.array(orderItemSchema),
+    billing_information: z
+      .object({
+        receipent: receipentSchema,
+        address: addressSchema,
+      })
+      .optional(),
+    use_saved_billing_information: booleanSchema(
+      'use_saved_billing_information'
+    ).optional(),
+  })
+  .refine(
+    (data) => data.billing_information || data.use_saved_billing_information,
+    {
+      path: ['billing_information'],
+      message: 'Must specify billing information.',
+    }
+  );
