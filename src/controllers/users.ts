@@ -705,45 +705,44 @@ export const placeOrder = async (
       placeOrderSchema
     );
 
-    const { items, billing_information, use_saved_billing_information } = data;
+    const { billing_information, use_saved_billing_information } = data;
 
-    // initialize variable to store order items with populated product field
-    // this is to be used to calculate the total price of the order
-    let populatedOrderItems = [] as PopulatedOrderItem[];
+    const cart_items = await Cart.find({ user: user._id }).lean();
 
-    // loop through order items and validate each product ID
-    // uses for of loop in place of forEach, as forEach doesn't handle asynchronous operations well
-    for (const order_item of items) {
-      const { product: product_id, quantity } = order_item;
+    if (!cart_items || cart_items.length === 0) {
+      throw new HttpError(
+        `No items in cart. Add the desired items to cart to place an order.`,
+        422
+      );
+    }
 
-      const product = await Product.findOne({
-        _id: product_id,
-        is_archived: false,
-        is_deleted: false,
-      });
+    // initialize variable to store order items without populated product field
+    // this is to be used to place the order
+    let items = [] as OrderItem[];
 
-      if (!product) {
+    // loop through cart items and validate that each product is available
+    for (const cart_item of cart_items) {
+      const { product, quantity } = cart_item;
+
+      if (product.is_archived || product.stock === 0) {
         throw new HttpError(
-          `Product with ID ${product_id} does not exist, is unavailable, or has been deleted`,
+          `${product.name} is unavailable or out of stock.`,
           422
         );
       }
 
-      if (product.is_archived || product.stock === 0) {
-        throw new HttpError(
-          `${product.name} is unavailable or out of stock`,
-          422
-        );
+      if (product.is_deleted) {
+        throw new HttpError(`${product.name} has been deleted.`, 422);
       }
 
       if (quantity > product.stock) {
         throw new HttpError(
-          `The desired quantity of the ${product.name} exceeds the number of items in stock`,
+          `The desired quantity of the ${product.name} exceeds the number of items in stock.`,
           422
         );
       }
 
-      populatedOrderItems.push({ product, quantity });
+      items.push({ product: product._id, quantity });
     }
 
     let billing: OrderBillingInformation;
@@ -767,15 +766,15 @@ export const placeOrder = async (
       items,
       billing_information: billing,
       status: 'pending',
-      total_price: calculateSubTotal(populatedOrderItems),
+      total_price: calculateSubTotal(cart_items),
     });
 
     // loop through ordered items and update stock count for each
-    for (const order_item of items) {
-      const { product: product_id, quantity } = order_item;
+    for (const cart_item of cart_items) {
+      const { product: cart_product, quantity } = cart_item;
 
       const product = await Product.findOne({
-        _id: product_id,
+        _id: cart_product._id,
         is_archived: false,
         is_deleted: false,
       });

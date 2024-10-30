@@ -15,6 +15,7 @@ import {
   SORT_ORDER_SCHEMA,
 } from './constants';
 import validateISODateRange from 'lib/validate-ISO-date-range';
+import { PHONE_NUMBER_REGEX } from 'lib/constants';
 
 export const updateCurrentUserSchema = z.object({
   first_name: FIRST_NAME_SCHEMA.optional(),
@@ -92,51 +93,52 @@ export const getUserOrdersFilterSchema = z
     message: `Sorting order isn't specified`,
   });
 
-const orderItemSchema = z.object({
-  product: ObjectIdSchema('product'),
-  quantity: z
-    .number({
-      invalid_type_error: 'Invalid quantity. Must be a number.',
-    })
-    .min(1, 'Minimum product quantity is 1'),
-});
+// const orderItemSchema = z.object({
+//   product: ObjectIdSchema('product'),
+//   quantity: z
+//     .number({
+//       invalid_type_error: 'Invalid quantity. Must be a number.',
+//     })
+//     .min(1, 'Minimum product quantity is 1'),
+// });
 
 const receipentSchema = z.object({
   first_name: FIRST_NAME_SCHEMA,
   last_name: LAST_NAME_SCHEMA,
-  mobile_number: z.string({
-    // TODO: validate number properly
-    required_error: `Receipent's mobile number is required`,
-  }),
+  mobile_number: z
+    .string({
+      required_error: `Receipent's mobile number is required.`,
+    })
+    .regex(PHONE_NUMBER_REGEX, 'Invalid mobile number.'),
 });
 
 // TODO: validate address properly
 const addressSchema = z.object({
   street: z
     .string({
-      required_error: 'Street is required',
+      required_error: 'Street is required.',
     })
-    .min(1, 'Street cannot be empty'),
+    .min(1, 'Street cannot be empty.'),
   city: z
     .string({
-      required_error: 'City is required',
+      required_error: 'City is required.',
     })
-    .min(2, 'City cannot be less than 2 characters'),
+    .min(2, 'City cannot be less than 2 characters.'),
   state: z
     .string({
-      required_error: 'State is required',
+      required_error: 'State is required.',
     })
-    .min(2, 'State cannot be less than 2 characters'),
+    .min(2, 'State cannot be less than 2 characters.'),
   country: z
     .string({
-      required_error: 'Country is required',
+      required_error: 'Country is required.',
     })
-    .min(3, 'Country cannot be less than 3 characters'),
+    .min(3, 'Country cannot be less than 3 characters.'),
 });
 
 export const placeOrderSchema = z
   .object({
-    items: z.array(orderItemSchema),
+    // items: z.array(orderItemSchema),
     billing_information: z
       .object({
         receipent: receipentSchema,

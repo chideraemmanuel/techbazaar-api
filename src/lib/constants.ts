@@ -10,6 +10,9 @@ export const EMAIL_REGEX = {
   hint: 'Invalid email address',
 };
 
+export const PHONE_NUMBER_REGEX =
+  /^[\+]?[0-9]{0,3}\W?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
+
 // export const NAME_REGEX = {
 //   regex: /^[a-zA-Z]{3,}$/i,
 //   hint: function () {
