@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import './config/database';
 // import './config/nodemailer';
-import express from 'express';
+import express, { NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5001;
 
 app.use(
   cors({
-    origin: '*',
+    origin: true,
     credentials: true,
   })
 );

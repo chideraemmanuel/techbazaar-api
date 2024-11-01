@@ -14,8 +14,8 @@ import {
   SEARCH_QUERY_SCHEMA,
   SORT_ORDER_SCHEMA,
 } from './constants';
-import validateISODateRange from 'lib/validate-ISO-date-range';
-import { PHONE_NUMBER_REGEX } from 'lib/constants';
+import validateISODateRange from '../lib/validate-ISO-date-range';
+import { PHONE_NUMBER_REGEX } from '../lib/constants';
 
 export const updateCurrentUserSchema = z.object({
   first_name: FIRST_NAME_SCHEMA.optional(),

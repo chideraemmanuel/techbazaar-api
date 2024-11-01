@@ -25,7 +25,7 @@ import Order, {
 } from '../models/order';
 import calculateSubTotal from '../lib/calculateSubTotal';
 import { read } from 'fs';
-import BillingInformation from 'models/billing-information';
+import BillingInformation from '../models/billing-information';
 
 interface GetUsersFilter {
   email_verified?: boolean;

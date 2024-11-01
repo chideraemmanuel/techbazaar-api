@@ -8,6 +8,7 @@ import {
   MAX_FILE_SIZE,
   MAX_PRODUCT_PRICE,
   MAX_STOCK_COUNT,
+  MULTER_FILE_SCHEMA,
   numberFilterchema,
   numberSchema,
   PRODUCT_CATEGORY_SCHEMA,
@@ -153,14 +154,7 @@ export const addProductSchema = z.object({
   brand: stringSchema('product brand'),
   description: stringSchema('product description'),
   category: PRODUCT_CATEGORY_SCHEMA,
-  image: z
-    .instanceof(File)
-    .refine((file) => file instanceof File, 'Image must be a file')
-    .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      'Only JPEG, JPG, PNG, and WebP formats are supported.'
-    ),
+  image: MULTER_FILE_SCHEMA,
   price: stringSchema('product price', 1, MAX_PRODUCT_PRICE),
   stock: stringSchema('stock', 1, MAX_STOCK_COUNT),
   is_featured: booleanSchema('is_featured').optional(),
@@ -172,15 +166,7 @@ export const productUpdateSchema = z.object({
   brand: stringSchema('product brand').optional(),
   description: stringSchema('product description').optional(),
   category: PRODUCT_CATEGORY_SCHEMA.optional(),
-  image: z
-    .instanceof(File)
-    .refine((file) => file instanceof File, 'Image must be a file')
-    .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      'Only JPEG, JPG, PNG, and WebP formats are supported.'
-    )
-    .optional(),
+  image: MULTER_FILE_SCHEMA.optional(),
   price: numberSchema('product price', 1, MAX_PRODUCT_PRICE).optional(),
   stock: numberSchema('stock', 1, MAX_STOCK_COUNT).optional(),
   // is_featured: z.enum(['true', 'false']).optional(),

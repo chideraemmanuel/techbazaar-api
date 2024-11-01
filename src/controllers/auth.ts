@@ -26,6 +26,7 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
+    console.log('req body', request.body);
     const data = validateSchema<z.infer<typeof userRegistrationSchema>>(
       request.body,
       userRegistrationSchema
@@ -45,21 +46,23 @@ export const registerUser = async (
       auth_type: 'manual',
     });
 
-    const new_user_return = { ...new_user };
+    const new_user_return = { ...new_user.toObject() };
     delete new_user_return['password'];
 
     const OTP = generateOTP();
+
+    console.log('OTP', OTP);
 
     await EmailVerification.create({
       user: new_user._id,
       OTP,
     });
 
-    await sendEmail({
-      receipent: email,
-      subject: 'Email Verification',
-      html: `Use this OTP to complete your registration; ${OTP}`,
-    });
+    // await sendEmail({
+    //   receipent: email,
+    //   subject: 'Email Verification',
+    //   html: `Use this OTP to complete your registration; ${OTP}`,
+    // });
 
     const { nanoid } = await import('nanoid');
     const session_id = nanoid();
@@ -72,7 +75,7 @@ export const registerUser = async (
     response
       .status(201)
       .cookie('session_id', session_id, {
-        maxAge: 60 * 60 * 24, // 24 hours
+        // maxAge: 60 * 60 * 24, // 24 hours
         httpOnly: true,
         ...(process.env.NODE_ENV === 'production' && { secure: true }),
       })
@@ -144,7 +147,7 @@ export const loginUser = async (
     response
       .status(201)
       .cookie('session_id', session_id, {
-        maxAge: 60 * 60 * 24, // 24 hours
+        // maxAge: 60 * 60 * 24, // 24 hours
         httpOnly: true,
         ...(process.env.NODE_ENV === 'production' && { secure: true }),
       })
@@ -442,7 +445,7 @@ export const verifyEmail = async (
 
     const { email, OTP } = data;
 
-    const user = await User.findOne({ email }).lean();
+    const user = await User.findOne({ email });
 
     if (!user) {
       throw new HttpError('No user with the supplied email address', 404);
@@ -510,16 +513,18 @@ export const resendOTP = async (
 
     const OTP = generateOTP();
 
+    console.log('OTP', OTP);
+
     await EmailVerification.create({
       user: user._id,
       OTP,
     });
 
-    await sendEmail({
-      receipent: email,
-      subject: 'Email Verification',
-      html: `Use this OTP to complete your registration; ${OTP}`,
-    });
+    // await sendEmail({
+    //   receipent: email,
+    //   subject: 'Email Verification',
+    //   html: `Use this OTP to complete your registration; ${OTP}`,
+    // });
 
     response
       .status(201)

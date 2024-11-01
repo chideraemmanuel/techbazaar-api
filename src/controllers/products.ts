@@ -478,8 +478,8 @@ export const addProduct = async (
     }
 
     const storage = getStorage(app);
-    const storageRef = ref(storage, `images/products/${image.name}-${uuid()}`);
-    const snapshot = await uploadBytes(storageRef, image);
+    const storageRef = ref(storage, `images/products/${name} image -${uuid()}`);
+    const snapshot = await uploadBytes(storageRef, image.buffer);
     const image_url = await getDownloadURL(snapshot.ref);
 
     const product = await Product.create({
@@ -587,9 +587,9 @@ export const updateProduct = async (
       const storage = getStorage(app);
       const storageRef = ref(
         storage,
-        `images/products/${image.name}-${uuid()}`
+        `images/products/${name || product.name} logo -${uuid()}`
       );
-      const snapshot = await uploadBytes(storageRef, image);
+      const snapshot = await uploadBytes(storageRef, image.buffer);
       const image_url = await getDownloadURL(snapshot.ref);
 
       updates.image = image_url;

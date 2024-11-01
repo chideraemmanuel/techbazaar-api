@@ -4,11 +4,13 @@ import {
   booleanEnum,
   booleanSchema,
   MAX_FILE_SIZE,
+  MULTER_FILE_SCHEMA,
   numberFilterchema,
   SEARCH_QUERY_SCHEMA,
   SORT_ORDER_SCHEMA,
   stringSchema,
 } from './constants';
+import {} from 'multer';
 
 export const getAllBrandsFilterSchema = z
   .object({
@@ -57,25 +59,11 @@ export const getAvailableBrandsFilterSchema = z
 
 export const addBrandSchema = z.object({
   name: stringSchema('brand name'),
-  logo: z
-    .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      'Only JPEG, JPG, PNG, and WebP formats are supported.'
-    )
-    .optional(),
+  logo: MULTER_FILE_SCHEMA.optional(),
 });
 
 export const brandUpdateSchema = z.object({
   name: stringSchema('brand name').optional(),
-  logo: z
-    .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      'Only JPEG, JPG, PNG, and WebP formats are supported.'
-    )
-    .optional(),
+  logo: MULTER_FILE_SCHEMA.optional(),
   is_deleted: booleanSchema('is_deleted').optional(),
 });

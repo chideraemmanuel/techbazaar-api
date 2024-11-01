@@ -37,6 +37,7 @@ export const EMAIL_SCHEMA = z
 export const PASSWORD_SCHEMA = z
   .string({
     invalid_type_error: 'Invalid password provided. Must be a string.',
+    required_error: 'Password is required',
   })
   .min(1, 'Password cannot be an empty string')
   .regex(PASSWORD_VALIDATION.regex, PASSWORD_VALIDATION.hint);
@@ -173,3 +174,21 @@ export const ACCEPTED_IMAGE_TYPES = [
   'image/png',
   'image/webp',
 ];
+
+export const MULTER_FILE_SCHEMA = z
+  .object(
+    {
+      fieldname: z.string(),
+      originalname: z.string(),
+      encoding: z.string(),
+      mimetype: z.string(),
+      size: z.number(),
+      buffer: z.instanceof(Buffer),
+    },
+    { message: 'Invalid file' }
+  )
+  .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
+  .refine(
+    (file) => ACCEPTED_IMAGE_TYPES.includes(file.mimetype),
+    'Only JPEG, JPG, PNG, and WebP formats are supported.'
+  );

@@ -194,12 +194,15 @@ export const addBrand = async (
   next: NextFunction
 ) => {
   try {
+    console.log('request file', request.file);
     const data = validateSchema<z.infer<typeof addBrandSchema>>(
-      request.body,
+      { ...request.body, logo: request.file },
       addBrandSchema
     );
 
     const { name, logo } = data;
+
+    console.log('logooo', logo);
 
     const brandExists = await Brand.findOne({ name });
 
@@ -211,8 +214,8 @@ export const addBrand = async (
 
     if (logo) {
       const storage = getStorage(app);
-      const storageRef = ref(storage, `images/brands/${logo.name}-${uuid()}`);
-      const snapshot = await uploadBytes(storageRef, logo);
+      const storageRef = ref(storage, `images/brands/${name} logo -${uuid()}`);
+      const snapshot = await uploadBytes(storageRef, logo.buffer);
       const url = await getDownloadURL(snapshot.ref);
 
       logo_url = url;
@@ -275,8 +278,8 @@ export const updateBrand = async (
 
     if (logo) {
       const storage = getStorage(app);
-      const storageRef = ref(storage, `images/brands/${logo.name}-${uuid()}`);
-      const snapshot = await uploadBytes(storageRef, logo);
+      const storageRef = ref(storage, `images/brands/${name} logo -${uuid()}`);
+      const snapshot = await uploadBytes(storageRef, logo.buffer);
       const logo_url = await getDownloadURL(snapshot.ref);
 
       updates.logo = logo_url;
