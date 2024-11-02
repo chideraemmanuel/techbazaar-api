@@ -9,7 +9,7 @@ import {
   MAX_PRODUCT_PRICE,
   MAX_STOCK_COUNT,
   MULTER_FILE_SCHEMA,
-  numberFilterchema,
+  numberFilterSchema,
   numberSchema,
   PRODUCT_CATEGORY_SCHEMA,
   SEARCH_QUERY_SCHEMA,
@@ -22,12 +22,12 @@ export const getAvailableProductsFilterSchema = z
   .object({
     search_query: SEARCH_QUERY_SCHEMA.optional(),
     brand: stringFilterchema('brand').optional(),
-    min_price: numberFilterchema('min_price').optional(),
-    max_price: numberFilterchema('max_price').optional(),
+    min_price: numberFilterSchema('min_price').optional(),
+    max_price: numberFilterSchema('max_price').optional(),
     category: PRODUCT_CATEGORY_SCHEMA.optional(),
     is_featured: booleanEnum('is_featured').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z
       .enum(['name', 'price', 'date_created', 'date_updated'])
       .optional(),
@@ -54,14 +54,14 @@ export const getAllProductsFilterSchema = z
   .object({
     search_query: SEARCH_QUERY_SCHEMA.optional(),
     brand: stringFilterchema('brand').optional(),
-    min_price: numberFilterchema('min_price').optional(),
-    max_price: numberFilterchema('max_price').optional(),
+    min_price: numberFilterSchema('min_price').optional(),
+    max_price: numberFilterSchema('max_price').optional(),
     category: PRODUCT_CATEGORY_SCHEMA.optional(),
     is_featured: booleanEnum('is_featured').optional(),
     is_archived: booleanEnum('is_archived').optional(),
     is_deleted: booleanEnum('is_deleted').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z
       .enum(['name', 'price', 'date_created', 'date_updated'])
       .optional(),
@@ -87,11 +87,11 @@ export const getAllProductsFilterSchema = z
 export const getRadomProductsFilterSchema = z
   .object({
     brand: z.string().min(1, 'Product brand cannot be empty').optional(),
-    min_price: numberFilterchema('min_price').optional(),
-    max_price: numberFilterchema('max_price').optional(),
+    min_price: numberFilterSchema('min_price').optional(),
+    max_price: numberFilterSchema('max_price').optional(),
     category: PRODUCT_CATEGORY_SCHEMA.optional(),
     is_featured: booleanEnum('is_featured').optional(),
-    limit: numberFilterchema('limit').optional(),
+    limit: numberFilterSchema('limit').optional(),
     exclude: z
       .string()
       .refine(
@@ -123,10 +123,10 @@ export const getRadomProductsFilterSchema = z
 
 export const getRelatedProductsFilterSchema = z
   .object({
-    min_price: numberFilterchema('min_price').optional(),
-    max_price: numberFilterchema('max_price').optional(),
+    min_price: numberFilterSchema('min_price').optional(),
+    max_price: numberFilterSchema('max_price').optional(),
     is_featured: booleanEnum('is_featured').optional(),
-    limit: numberFilterchema('limit').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z
       .enum(['name', 'price', 'date_created', 'date_updated'])
       .optional(),
@@ -157,8 +157,9 @@ export const addProductSchema = z.object({
   image: MULTER_FILE_SCHEMA,
   price: stringSchema('product price', 1, MAX_PRODUCT_PRICE),
   stock: stringSchema('stock', 1, MAX_STOCK_COUNT),
-  is_featured: booleanSchema('is_featured').optional(),
-  is_archived: booleanSchema('is_archived').optional(),
+  is_featured: z
+    .union([booleanSchema('is_featured'), booleanEnum('is_featured')])
+    .optional(),
 });
 
 export const productUpdateSchema = z.object({
@@ -168,9 +169,8 @@ export const productUpdateSchema = z.object({
   category: PRODUCT_CATEGORY_SCHEMA.optional(),
   image: MULTER_FILE_SCHEMA.optional(),
   price: numberSchema('product price', 1, MAX_PRODUCT_PRICE).optional(),
-  stock: numberSchema('stock', 1, MAX_STOCK_COUNT).optional(),
-  // is_featured: z.enum(['true', 'false']).optional(),
-  // is_archived: z.enum(['true', 'false']).optional(),
-  is_featured: booleanSchema('is_featured').optional(),
-  is_deleted: booleanSchema('is_deleted').optional(),
+  stock: numberSchema('stock', 0, MAX_STOCK_COUNT).optional(),
+  is_featured: z
+    .union([booleanSchema('is_featured'), booleanEnum('is_featured')])
+    .optional(),
 });

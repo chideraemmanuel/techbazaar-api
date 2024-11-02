@@ -5,7 +5,7 @@ import {
   booleanSchema,
   MAX_FILE_SIZE,
   MULTER_FILE_SCHEMA,
-  numberFilterchema,
+  numberFilterSchema,
   SEARCH_QUERY_SCHEMA,
   SORT_ORDER_SCHEMA,
   stringSchema,
@@ -19,8 +19,8 @@ export const getAllBrandsFilterSchema = z
     sort_by: z.enum(['name', 'date_created', 'date_updated']).optional(),
     sort_order: SORT_ORDER_SCHEMA.optional(),
     paginated: z.literal('true').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
   })
   .refine((data) => !data.page || data.paginated, {
     path: ['page'],
@@ -41,8 +41,8 @@ export const getAvailableBrandsFilterSchema = z
     sort_by: z.enum(['name', 'date_created', 'date_updated']).optional(),
     sort_order: SORT_ORDER_SCHEMA.optional(),
     paginated: z.literal('true').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
   })
   .refine((data) => !data.page || data.paginated, {
     path: ['page'],

@@ -2,7 +2,7 @@ import isValidISODate from '../lib/is-valid-ISO-date';
 import z from 'zod';
 import {
   ISODateSchema,
-  numberFilterchema,
+  numberFilterSchema,
   ORDER_STATUS_SCHEMA,
   SORT_ORDER_SCHEMA,
 } from './constants';
@@ -12,8 +12,8 @@ export const getOrdersFilterSchema = z
     status: ORDER_STATUS_SCHEMA.optional(),
     start_date: ISODateSchema('start_date').optional(),
     end_date: ISODateSchema('end_date').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z.enum(['date_created', 'date_updated']).optional(),
     sort_order: SORT_ORDER_SCHEMA.optional(),
   })

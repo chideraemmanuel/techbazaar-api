@@ -293,7 +293,7 @@ export const getAllProducts = async (
           ? 'updatedAt'
           : sort_by,
       sort_order,
-      select: '+ is_archived, +is_deleted +deleted_at',
+      select: '+is_archived +is_deleted +deleted_at',
     });
 
     response.json(paginationResult);
@@ -451,7 +451,7 @@ export const addProduct = async (
 ) => {
   try {
     const data = validateSchema<z.infer<typeof addProductSchema>>(
-      request.body,
+      { ...request.body, image: request.file },
       addProductSchema
     );
 
@@ -464,7 +464,6 @@ export const addProduct = async (
       price,
       stock,
       is_featured,
-      is_archived,
     } = data;
 
     const isBrandValidId = mongoose.isValidObjectId(brand);
@@ -491,7 +490,6 @@ export const addProduct = async (
       price,
       stock,
       is_featured: is_featured ? is_featured : undefined,
-      is_archived: is_archived ? is_archived : undefined,
     });
 
     response
@@ -512,8 +510,6 @@ interface ProductUpdates {
   stock?: number;
   is_archived?: boolean;
   is_featured?: boolean;
-  is_deleted?: boolean;
-  deleted_at?: Date | null;
 }
 
 export const updateProduct = async (
@@ -535,7 +531,7 @@ export const updateProduct = async (
     }
 
     const data = validateSchema<z.infer<typeof productUpdateSchema>>(
-      request.body,
+      { ...request.body, image: request.file },
       productUpdateSchema
     );
 
@@ -552,7 +548,6 @@ export const updateProduct = async (
       price,
       stock,
       is_featured,
-      is_deleted,
     } = data;
 
     const updates: ProductUpdates = {};
@@ -599,7 +594,8 @@ export const updateProduct = async (
       updates.price = price;
     }
 
-    if (stock) {
+    if (stock !== undefined) {
+      console.log('stockkk', stock);
       if (stock === 0) {
         updates.is_archived = true;
       } else {
@@ -611,16 +607,6 @@ export const updateProduct = async (
 
     if (is_featured !== undefined) {
       updates.is_featured = is_featured;
-    }
-
-    if (is_deleted !== undefined) {
-      updates.is_deleted = is_deleted;
-
-      if (is_deleted === true) {
-        updates.deleted_at = new Date(Date.now());
-      } else {
-        updates.deleted_at = null;
-      }
     }
 
     const updated_product = await Product.findByIdAndUpdate(
@@ -668,6 +654,10 @@ export const deleteProduct = async (
       throw new HttpError('Product does not exist', 404);
     }
 
+    if (product.is_deleted) {
+      throw new HttpError('Product has already been deleted', 422);
+    }
+
     // TODO: implement this..?
     // const cartWithProduct = await Cart.findOne({ product: product._id })
     // const orderWithProduct = await Order.findOne({ product: product._id })
@@ -697,6 +687,43 @@ export const deleteProduct = async (
     await product.save();
 
     response.json({ message: 'Product deleted successfully' });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const restoreProduct = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idOrSlug } = request.params;
+
+    const isValidId = mongoose.isValidObjectId(idOrSlug);
+
+    const product = isValidId
+      ? await Product.findById(idOrSlug)
+      : await Product.findOne({ slug: idOrSlug });
+
+    if (!product) {
+      throw new HttpError(
+        'Product does not exist or has been permanently deleted',
+        404
+      );
+    }
+
+    if (!product.is_deleted) {
+      throw new HttpError('Product was not previously deleted', 422);
+    }
+
+    product.is_deleted = false;
+    // product.deleted_at = null;
+    delete product.deleted_at;
+
+    await product.save();
+
+    response.json({ message: 'Product restored successfully' });
   } catch (error: any) {
     next(error);
   }

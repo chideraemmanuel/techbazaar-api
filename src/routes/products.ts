@@ -9,9 +9,10 @@ import {
   getRelatedProducts,
   getAllProducts,
   updateProduct,
+  restoreProduct,
 } from '../controllers/products';
 import { Router } from 'express';
-import parseRequestFile from 'lib/parse-request-file';
+import parseRequestFile from '../lib/parse-request-file';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.put(
   updateProduct
 );
 router.delete('/:idOrSlug', authorizeRequest, deleteProduct);
+router.put('/:idOrSlug/restore', authorizeRequest, restoreProduct);
 
 export default router;

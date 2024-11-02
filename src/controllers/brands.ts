@@ -81,6 +81,7 @@ export const getAllBrands = async (
 
     const brands = await Brand.find(filter)
       .sort(sort_by && sort_order && { [sort_by]: sort_order })
+      .select('+is_deleted +deleted_at')
       .lean();
 
     response.json(brands);
@@ -194,7 +195,6 @@ export const addBrand = async (
   next: NextFunction
 ) => {
   try {
-    console.log('request file', request.file);
     const data = validateSchema<z.infer<typeof addBrandSchema>>(
       { ...request.body, logo: request.file },
       addBrandSchema
@@ -260,7 +260,7 @@ export const updateBrand = async (
     }
 
     const data = validateSchema<z.infer<typeof brandUpdateSchema>>(
-      request.body,
+      { ...request.body, logo: request.file },
       brandUpdateSchema
     );
 

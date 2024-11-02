@@ -122,6 +122,12 @@ productSchema.pre('save', async function (next) {
       this.slug = encodeURIComponent(
         `${this.name} ${SKU}`.replaceAll(' ', '-').toLowerCase()
       );
+
+      if (this.stock === 0) {
+        this.is_archived = true;
+      } else {
+        this.is_archived = false;
+      }
     } catch (error: any) {
       next(error);
     }
@@ -149,7 +155,7 @@ productSchema.pre('save', async function (next) {
   //   }
   // }
 
-  if (this.isModified('stock')) {
+  if (!this.isNew && this.isModified('stock')) {
     try {
       if (this.stock === 0) {
         this.is_archived = true;

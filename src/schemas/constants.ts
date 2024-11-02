@@ -80,11 +80,11 @@ export const numberSchema = (
       required_error: `${label} is required`,
     })
     .min(min, `${label} cannot be less than ${min}.`)
-    .max(max, `${label} cannot be more than ${max}.`)
-    .positive(`${label} must be a positive numeric value`); // unnecessary..?
+    .max(max, `${label} cannot be more than ${max}.`);
+  // .positive(`${label} must be a positive numeric value`); // unnecessary..?
 };
 
-export const numberFilterchema = (label: string) => {
+export const numberFilterSchema = (label: string) => {
   return z
     .string()
     .refine((value) => !isNaN(Number(value)), {

@@ -6,7 +6,7 @@ import {
   FIRST_NAME_SCHEMA,
   ISODateSchema,
   LAST_NAME_SCHEMA,
-  numberFilterchema,
+  numberFilterSchema,
   ObjectIdSchema,
   ORDER_STATUS_SCHEMA,
   PASSWORD_SCHEMA,
@@ -25,8 +25,8 @@ export const updateCurrentUserSchema = z.object({
 
 export const getCurrentUserCartFilterSchema = z
   .object({
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z
       .enum(['date_created', 'date_updated'], {
         invalid_type_error: 'Invalid sort_by value provided.',
@@ -50,8 +50,8 @@ export const getUsersFilterSchema = z
     auth_type: AUTH_TYPE_SCHEMA.optional(),
     role: ROLE_SCHEMA.optional(),
     disabled: booleanEnum('email_verified').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z
       .enum(['first_name', 'last_name', 'email'], {
         invalid_type_error: 'Invalid sort_by value provided.',
@@ -74,8 +74,8 @@ export const getUserOrdersFilterSchema = z
     status: ORDER_STATUS_SCHEMA.optional(),
     start_date: ISODateSchema('start_date').optional(),
     end_date: ISODateSchema('end_date').optional(),
-    page: numberFilterchema('page').optional(),
-    limit: numberFilterchema('limit').optional(),
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
     sort_by: z.enum(['date_created', 'date_updated']).optional(),
     sort_order: SORT_ORDER_SCHEMA.optional(),
   })
