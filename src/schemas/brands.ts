@@ -65,5 +65,4 @@ export const addBrandSchema = z.object({
 export const brandUpdateSchema = z.object({
   name: stringSchema('brand name').optional(),
   logo: MULTER_FILE_SCHEMA.optional(),
-  is_deleted: booleanSchema('is_deleted').optional(),
 });

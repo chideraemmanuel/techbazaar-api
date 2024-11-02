@@ -647,8 +647,10 @@ export const deleteProduct = async (
     const isValidId = mongoose.isValidObjectId(idOrSlug);
 
     const product = isValidId
-      ? await Product.findById(idOrSlug)
-      : await Product.findOne({ slug: idOrSlug });
+      ? await Product.findById(idOrSlug).select('+is_deleted +deleted_at')
+      : await Product.findOne({ slug: idOrSlug }).select(
+          '+is_deleted +deleted_at'
+        );
 
     if (!product) {
       throw new HttpError('Product does not exist', 404);
@@ -703,8 +705,10 @@ export const restoreProduct = async (
     const isValidId = mongoose.isValidObjectId(idOrSlug);
 
     const product = isValidId
-      ? await Product.findById(idOrSlug)
-      : await Product.findOne({ slug: idOrSlug });
+      ? await Product.findById(idOrSlug).select('+is_deleted +deleted_at')
+      : await Product.findOne({ slug: idOrSlug }).select(
+          '+is_deleted +deleted_at'
+        );
 
     if (!product) {
       throw new HttpError(
@@ -718,8 +722,7 @@ export const restoreProduct = async (
     }
 
     product.is_deleted = false;
-    // product.deleted_at = null;
-    delete product.deleted_at;
+    product.deleted_at = null;
 
     await product.save();
 

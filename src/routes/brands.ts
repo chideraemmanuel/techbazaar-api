@@ -7,6 +7,7 @@ import {
   getAvailableBrands,
   updateBrand,
   getAllBrands,
+  restoreBrand,
 } from '../controllers/brands';
 import { Router } from 'express';
 import parseRequestFile from '../lib/parse-request-file';
@@ -27,5 +28,6 @@ router.put(
   updateBrand
 );
 router.delete('/:brandId', authorizeRequest, deleteBrand);
+router.put('/:brandId/restore', authorizeRequest, restoreBrand);
 
 export default router;

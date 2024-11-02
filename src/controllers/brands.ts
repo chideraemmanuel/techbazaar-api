@@ -268,7 +268,7 @@ export const updateBrand = async (
       throw new HttpError('No field to be updated was supplied', 400);
     }
 
-    const { name, logo, is_deleted } = data;
+    const { name, logo } = data;
 
     const updates: BrandUpdates = {};
 
@@ -283,16 +283,6 @@ export const updateBrand = async (
       const logo_url = await getDownloadURL(snapshot.ref);
 
       updates.logo = logo_url;
-    }
-
-    if (is_deleted !== undefined) {
-      updates.is_deleted = is_deleted;
-
-      if (is_deleted === true) {
-        updates.deleted_at = new Date(Date.now());
-      } else {
-        updates.deleted_at = null;
-      }
     }
 
     const updated_brand = await Brand.findByIdAndUpdate(brand._id, updates, {
@@ -332,10 +322,16 @@ export const deleteBrand = async (
       throw new HttpError('Invalid brand ID', 400);
     }
 
-    const brand = await Brand.findById(brandId);
+    const brand = await Brand.findById(brandId).select(
+      '+is_deleted +deleted_at'
+    );
 
     if (!brand) {
       throw new HttpError('Brand with the supplied ID does not exist', 404);
+    }
+
+    if (brand.is_deleted) {
+      throw new HttpError('Brand has already been deleted', 422);
     }
 
     const productWithBrand = await Product.findOne({ brand: brand._id });
@@ -365,6 +361,44 @@ export const deleteBrand = async (
     }
 
     response.json({ message: 'Brand deleted successfully' });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const restoreBrand = async (
+  request: AuthorizedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { brandId } = request.params;
+
+    if (!mongoose.isValidObjectId(brandId)) {
+      throw new HttpError('Invalid brand ID', 400);
+    }
+
+    const brand = await Brand.findById(brandId).select(
+      '+is_deleted +deleted_at'
+    );
+
+    if (!brand) {
+      throw new HttpError(
+        'Brand with the provided ID does not exist or has been permanently deleted',
+        404
+      );
+    }
+
+    if (!brand.is_deleted) {
+      throw new HttpError('Brand was not previously deleted', 422);
+    }
+
+    brand.is_deleted = false;
+    brand.deleted_at = null;
+
+    await brand.save();
+
+    response.json({ message: 'Brand restored successfully' });
   } catch (error: any) {
     next(error);
   }
