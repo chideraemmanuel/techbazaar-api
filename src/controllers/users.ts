@@ -14,7 +14,7 @@ import {
 import z from 'zod';
 import Cart from '../models/cart';
 import Product from '../models/product';
-import mongoose from 'mongoose';
+import mongoose, { PipelineStage } from 'mongoose';
 import User, { UserAuthType, UserRole } from '../models/user';
 import paginateQuery from '../lib/paginate-query';
 import Order, {
@@ -264,6 +264,103 @@ export const getCurrentUserCart = async (
   }
 };
 
+export const getCurrentUserCartSummary = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    //  total number of items
+    //  total price
+
+    const pipeline: PipelineStage[] = [
+      // Match the documents belonging to the given user
+      { $match: { user: user._id } },
+
+      // Lookup the product details to join with the cart
+      {
+        $lookup: {
+          from: 'products', // Make sure the collection name matches your MongoDB naming
+          localField: 'product',
+          foreignField: '_id',
+          as: 'productDetails',
+        },
+      },
+
+      // Unwind the productDetails array to deconstruct it
+      { $unwind: '$productDetails' },
+
+      // Add fields to calculate the total for each item (quantity * price)
+      {
+        $addFields: {
+          totalAmountPerItem: {
+            $multiply: ['$quantity', '$productDetails.price'],
+          },
+        },
+      },
+
+      // Group by null to calculate the overall totals
+      {
+        $group: {
+          _id: null,
+          total_items: { $sum: '$quantity' },
+          total_amount: { $sum: '$totalAmountPerItem' },
+        },
+      },
+
+      // Project the final structure without _id
+      {
+        $project: {
+          _id: 0,
+          total_items: 1,
+          total_amount: 1,
+        },
+      },
+    ];
+
+    const aggregationResult = await Cart.aggregate(pipeline);
+
+    const cart_summary =
+      aggregationResult.length > 0
+        ? aggregationResult[0]
+        : { total_items: 0, total_amount: 0 };
+
+    response.json(cart_summary);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getCartItemByProductID = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = request.query;
+
+    if (!id)
+      throw new HttpError('Product ID is missing in query parameters.', 400);
+
+    if (!mongoose.isValidObjectId(id))
+      throw new HttpError('Invalid product ID', 400);
+
+    const cart_item = await Cart.findOne({ product: id });
+
+    if (!cart_item) {
+      // throw new HttpError('', 422);
+      response.status(204).json(null);
+      return;
+    }
+
+    response.json(cart_item);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
 export const addItemToCart = async (
   request: AuthenticatedRequest,
   response: Response,
@@ -310,7 +407,7 @@ export const addItemToCart = async (
       quantity: 1,
     });
 
-    response.json({
+    response.status(201).json({
       message: 'Item added to cart successfully',
       data: new_cart_item,
     });

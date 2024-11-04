@@ -152,7 +152,7 @@ export const getRelatedProductsFilterSchema = z
 export const addProductSchema = z.object({
   name: stringSchema('product name'),
   brand: stringSchema('product brand'),
-  description: stringSchema('product description'),
+  description: stringSchema('product description', 1, 1000),
   category: PRODUCT_CATEGORY_SCHEMA,
   image: MULTER_FILE_SCHEMA,
   price: stringSchema('product price', 1, MAX_PRODUCT_PRICE),
@@ -165,7 +165,7 @@ export const addProductSchema = z.object({
 export const productUpdateSchema = z.object({
   name: stringSchema('product name').optional(),
   brand: stringSchema('product brand').optional(),
-  description: stringSchema('product description').optional(),
+  description: stringSchema('product description', 1, 1000).optional(),
   category: PRODUCT_CATEGORY_SCHEMA.optional(),
   image: MULTER_FILE_SCHEMA.optional(),
   price: numberSchema('product price', 1, MAX_PRODUCT_PRICE).optional(),

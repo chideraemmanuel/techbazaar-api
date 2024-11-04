@@ -9,7 +9,7 @@ import {
   productUpdateSchema,
 } from '../schemas/products';
 import z from 'zod';
-import mongoose from 'mongoose';
+import mongoose, { PipelineStage } from 'mongoose';
 import Product, { ProductCategory } from '../models/product';
 import Brand from '../models/brand';
 import HttpError from '../lib/http-error';
@@ -183,7 +183,7 @@ export const getRandomAvailableProducts = async (
       ? 20
       : Math.ceil(+limit);
 
-    const products = await Product.aggregate([
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           ...filter,
@@ -193,17 +193,22 @@ export const getRandomAvailableProducts = async (
         },
       },
       { $sample: { size: limitNumber } },
-      sort_by &&
-        sort_order && {
-          $sort: {
-            [sort_by === 'date_created'
-              ? 'createdAt'
-              : sort_by === 'date_updated'
-              ? 'updatedAt'
-              : sort_by]: sort_order === 'ascending' ? 1 : -1,
-          },
-        },
-    ]);
+      ...(sort_by && sort_order
+        ? [
+            {
+              $sort: {
+                [sort_by === 'date_created'
+                  ? 'createdAt'
+                  : sort_by === 'date_updated'
+                  ? 'updatedAt'
+                  : sort_by]: sort_order === 'ascending' ? 1 : -1,
+              } as Record<string, 1 | -1>, // Explicitly cast type here
+            },
+          ]
+        : []),
+    ];
+
+    const products = await Product.aggregate(pipeline);
 
     response.json(products);
   } catch (error: any) {
@@ -317,12 +322,12 @@ export const getAvailableProductByIdOrSlug = async (
           _id: idOrSlug,
           is_archived: false,
           is_deleted: false,
-        }).lean()
+        })
       : await Product.findOne({
           slug: idOrSlug,
           is_archived: false,
           is_deleted: false,
-        }).lean();
+        });
 
     if (!product) {
       throw new HttpError('Product does not exist or is archived', 404);
@@ -345,8 +350,8 @@ export const getProductByIdOrSlug = async (
     const isValidId = mongoose.isValidObjectId(idOrSlug);
 
     const product = isValidId
-      ? await Product.findById(idOrSlug).lean()
-      : await Product.findOne({ slug: idOrSlug }).lean();
+      ? await Product.findById(idOrSlug)
+      : await Product.findOne({ slug: idOrSlug });
 
     if (!product) {
       throw new HttpError('Product does not exist', 404);
@@ -415,7 +420,7 @@ export const getRelatedProducts = async (
       ? 20
       : Math.ceil(+limit);
 
-    const products = await Product.aggregate([
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           ...filter,
@@ -426,17 +431,22 @@ export const getRelatedProducts = async (
         },
       },
       { $sample: { size: limitNumber } },
-      sort_by &&
-        sort_order && {
-          $sort: {
-            [sort_by === 'date_created'
-              ? 'createdAt'
-              : sort_by === 'date_updated'
-              ? 'updatedAt'
-              : sort_by]: sort_order === 'ascending' ? 1 : -1,
-          },
-        },
-    ]);
+      ...(sort_by && sort_order
+        ? [
+            {
+              $sort: {
+                [sort_by === 'date_created'
+                  ? 'createdAt'
+                  : sort_by === 'date_updated'
+                  ? 'updatedAt'
+                  : sort_by]: sort_order === 'ascending' ? 1 : -1,
+              } as Record<string, 1 | -1>, // Explicitly cast type here
+            },
+          ]
+        : []),
+    ];
+
+    const products = await Product.aggregate(pipeline);
 
     response.json(products);
   } catch (error: any) {

@@ -10,8 +10,10 @@ import {
   clearCurrentUserCart,
   decrementCartItemQuantity,
   getAllUsers,
+  getCartItemByProductID,
   getCurrentUser,
   getCurrentUserCart,
+  getCurrentUserCartSummary,
   getCurrentUserOrderById,
   getCurrentUserOrders,
   getUserById,
@@ -56,6 +58,26 @@ router.put('/:userId', authorizeRequest, updateUserStatus);
  * get the currently signed in user's cart (verified users only)
  */
 router.get('/me/cart', authenticateRequest, verifyRequest, getCurrentUserCart);
+
+/**
+ * get the currently signed in user's cart summary (verified users only)
+ */
+router.get(
+  '/me/cart/summary',
+  authenticateRequest,
+  verifyRequest,
+  getCurrentUserCartSummary
+);
+
+/**
+ * get the currently signed in user's cart (verified users only)
+ */
+router.get(
+  '/me/cart/product',
+  authenticateRequest,
+  verifyRequest,
+  getCartItemByProductID
+);
 /**
  * add to cart, currently signed in user (verified users only)
  */
