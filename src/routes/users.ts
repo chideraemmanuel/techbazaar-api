@@ -12,6 +12,7 @@ import {
   getAllUsers,
   getCartItemByProductID,
   getCurrentUser,
+  getCurrentUserBillingInformation,
   getCurrentUserCart,
   getCurrentUserCartSummary,
   getCurrentUserOrderById,
@@ -153,7 +154,7 @@ router.get('/:userId/orders/:orderId', authorizeRequest, getUserOrderById);
 /**
  * place an order, currently signed in user (verified users only)
  */
-router.post('/me/orders', authenticateRequest, placeOrder);
+router.post('/me/orders', authenticateRequest, verifyRequest, placeOrder);
 // =============================================================================
 
 /**
@@ -166,10 +167,28 @@ router.put('/:userId/orders/:orderId'); // ! not done
 /**
  * cancel a particular order of the currently signed in user (verified users only)
  */
-router.delete('/me/orders/:orderId', authenticateRequest, cancelOrder);
+router.delete(
+  '/me/orders/:orderId',
+  authenticateRequest,
+  verifyRequest,
+  cancelOrder
+);
 /**
  * cancel a particular order of a particular user (admin only)
  */
 router.delete('/:userId/orders/:orderId'); // ! not done
+
+// =============================================================================
+
+/**
+ * get saved billing information of currently signed in user (verified users only)
+ */
+router.get(
+  '/me/billing',
+  authenticateRequest,
+  verifyRequest,
+  getCurrentUserBillingInformation
+);
+// =============================================================================
 
 export default router;

@@ -970,3 +970,24 @@ export const cancelOrder = async (
   }
 };
 // TODO: send mail for order actions..?
+
+export const getCurrentUserBillingInformation = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+    const saved_billing_information = await BillingInformation.findOne({
+      user: user._id,
+    }).lean();
+
+    if (!saved_billing_information) {
+      throw new HttpError('Billing information not found', 404);
+    }
+
+    response.json(saved_billing_information);
+  } catch (error: any) {
+    next(error);
+  }
+};
