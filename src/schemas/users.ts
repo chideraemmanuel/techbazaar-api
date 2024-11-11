@@ -23,6 +23,26 @@ export const updateCurrentUserSchema = z.object({
   password: PASSWORD_SCHEMA.optional(),
 });
 
+export const getCurrentUserWishlistFilterSchema = z
+  .object({
+    page: numberFilterSchema('page').optional(),
+    limit: numberFilterSchema('limit').optional(),
+    sort_by: z
+      .enum(['date_created', 'date_updated'], {
+        invalid_type_error: 'Invalid sort_by value provided.',
+      })
+      .optional(),
+    sort_order: SORT_ORDER_SCHEMA.optional(),
+  })
+  .refine((data) => !data.sort_by || data.sort_order, {
+    path: ['sort_order'],
+    message: `sort_order must be specified if sort_by is specified.`,
+  });
+
+export const addItemToWishlistSchema = z.object({
+  product: ObjectIdSchema('product'),
+});
+
 export const getCurrentUserCartFilterSchema = z
   .object({
     page: numberFilterSchema('page').optional(),
@@ -81,11 +101,16 @@ export const getUserOrdersFilterSchema = z
   })
   .refine(
     (data) => {
-      validateISODateRange(data.start_date, data.end_date);
+      if (data.start_date && data.end_date) {
+        const startDate = new Date(data.start_date);
+        const endDate = new Date(data.end_date);
+        return startDate <= endDate;
+      }
+      return true; // If one or both dates are missing, skip this validation
     },
     {
       message: 'start_date must be before or equal to end_date.',
-      path: ['end_date'],
+      path: ['end_date'], // Attach the error to the end_date field
     }
   )
   .refine((data) => !data.sort_by || data.sort_order, {

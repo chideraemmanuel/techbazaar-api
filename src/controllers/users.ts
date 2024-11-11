@@ -4,7 +4,9 @@ import HttpError from '../lib/http-error';
 import validateSchema from '../lib/validate-schema';
 import {
   addItemToCartSchema,
+  addItemToWishlistSchema,
   getCurrentUserCartFilterSchema,
+  getCurrentUserWishlistFilterSchema,
   getUserOrdersFilterSchema,
   getUsersFilterSchema,
   placeOrderSchema,
@@ -26,6 +28,7 @@ import Order, {
 import calculateSubTotal from '../lib/calculateSubTotal';
 import { read } from 'fs';
 import BillingInformation from '../models/billing-information';
+import Wishlist from 'models/wishlist';
 
 interface GetUsersFilter {
   email_verified?: boolean;
@@ -224,6 +227,128 @@ export const updateUserStatus = async (
       message: 'User status updated successfully',
       data: updated_user,
     });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getCurrentUserWishlist = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    const data = validateSchema<
+      z.infer<typeof getCurrentUserWishlistFilterSchema>
+    >(request.query, getCurrentUserWishlistFilterSchema);
+
+    const { page, limit, sort_by, sort_order } = data;
+
+    const paginationResult = await paginateQuery({
+      model: Wishlist,
+      filter: { user: user._id },
+      page: +page,
+      limit: +limit,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
+      sort_order,
+    });
+
+    response.json(paginationResult);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const addItemToWishlist = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    const data = validateSchema<z.infer<typeof addItemToWishlistSchema>>(
+      request.body,
+      addItemToWishlistSchema
+    );
+
+    const { product: product_id } = data;
+
+    const product = await Product.findById(product_id);
+
+    if (!product) {
+      throw new HttpError(
+        'Product with the provided ID does not exist or has been deleted',
+        404
+      );
+    }
+
+    if (product.is_archived || product.stock === 0) {
+      throw new HttpError(
+        'Product with the provided ID is unavailable or out of stock',
+        422
+      );
+    }
+
+    const itemAlreadyInWishlist = await Wishlist.findOne({
+      user: user._id,
+      product: product_id,
+    });
+
+    if (itemAlreadyInWishlist) {
+      throw new HttpError('Item is already in wishlist', 400);
+    }
+
+    const new_wishlist_item = await Wishlist.create({
+      user: user._id,
+      product,
+    });
+
+    response.status(201).json({
+      message: 'Item added to wishlist successfully',
+      data: new_wishlist_item,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const removeItemFromWishlist = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = request.user;
+
+    const { wishlistItemId } = request.params;
+
+    if (!mongoose.isValidObjectId(wishlistItemId)) {
+      throw new HttpError('Invalid wishlist item ID', 400);
+    }
+
+    const wishlist_item = await Wishlist.findOne({
+      _id: wishlistItemId,
+      user: user._id,
+    });
+
+    if (!wishlist_item) {
+      throw new HttpError(
+        `Wishlist item with the provided ID does not exist or has been removed from wishlist`,
+        404
+      );
+    }
+
+    await wishlist_item.deleteOne();
+
+    response.json({ message: 'Item removed from wishlist successfully' });
   } catch (error: any) {
     next(error);
   }
@@ -804,7 +929,15 @@ export const placeOrder = async (
 
     const { billing_information, use_saved_billing_information } = data;
 
-    const cart_items = await Cart.find({ user: user._id }).lean();
+    console.log({
+      save_billing_information,
+      billing_information,
+      use_saved_billing_information,
+    });
+
+    const cart_items = await Cart.find({ user: user._id });
+
+    console.log('[CART_ITEMS]', cart_items);
 
     if (!cart_items || cart_items.length === 0) {
       throw new HttpError(
@@ -893,9 +1026,9 @@ export const placeOrder = async (
           user: user._id,
           ...billing,
         });
+      } else {
+        await previous_billing_information.updateOne(billing);
       }
-
-      await previous_billing_information.updateOne(billing);
     }
 
     response

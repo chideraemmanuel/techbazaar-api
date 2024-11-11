@@ -6,6 +6,7 @@ import {
 } from '../middlewares/auth';
 import {
   addItemToCart,
+  addItemToWishlist,
   cancelOrder,
   clearCurrentUserCart,
   decrementCartItemQuantity,
@@ -17,12 +18,14 @@ import {
   getCurrentUserCartSummary,
   getCurrentUserOrderById,
   getCurrentUserOrders,
+  getCurrentUserWishlist,
   getUserById,
   getUserOrderById,
   getUserOrders,
   incrementCartItemQuantity,
   placeOrder,
   removeItemFromCart,
+  removeItemFromWishlist,
   updateCurrentUser,
   updateUserStatus,
 } from '../controllers/users';
@@ -53,6 +56,35 @@ router.put('/me', authenticateRequest, verifyRequest, updateCurrentUser);
  * update user status; role or disabled (admin only)
  */
 router.put('/:userId', authorizeRequest, updateUserStatus);
+// =============================================================================
+
+/**
+ * get the currently signed in user's wishlist (verified users only)
+ */
+router.get(
+  '/me/wishlist',
+  authenticateRequest,
+  verifyRequest,
+  getCurrentUserWishlist
+);
+/**
+ * add to wishlist, currently signed in user (verified users only)
+ */
+router.post(
+  '/me/wishlist',
+  authenticateRequest,
+  verifyRequest,
+  addItemToWishlist
+);
+/**
+ * remove from wishlist, currently signed in user (verified users only)
+ */
+router.delete(
+  '/me/wishlist/:wishlistItemId',
+  authenticateRequest,
+  verifyRequest,
+  removeItemFromWishlist
+);
 // =============================================================================
 
 /**
