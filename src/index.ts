@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import router from './routes';
 import { errorHandler, notFound } from './middlewares/error-handler';
+import { updateSession } from './middlewares/session';
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/api/v1', router);
+app.use('/api/v1', updateSession, router);
 
 app.use(notFound);
 app.use(errorHandler);
