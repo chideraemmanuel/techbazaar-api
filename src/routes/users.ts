@@ -22,6 +22,7 @@ import {
   getUserById,
   getUserOrderById,
   getUserOrders,
+  getWishlistItemByProductID,
   incrementCartItemQuantity,
   placeOrder,
   removeItemFromCart,
@@ -68,6 +69,15 @@ router.get(
   getCurrentUserWishlist
 );
 /**
+ * get a particular item from the currently signed in user's wishlist (verified users only)
+ */
+router.get(
+  '/me/wishlist/product',
+  authenticateRequest,
+  verifyRequest,
+  getWishlistItemByProductID
+);
+/**
  * add to wishlist, currently signed in user (verified users only)
  */
 router.post(
@@ -103,7 +113,7 @@ router.get(
 );
 
 /**
- * get the currently signed in user's cart (verified users only)
+ * get a particular item from the currently signed in user's cart (verified users only)
  */
 router.get(
   '/me/cart/product',

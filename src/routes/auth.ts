@@ -9,6 +9,7 @@ import {
   requestPasswordReset,
   resendOTP,
   verifyEmail,
+  verifyPasswordResetRequestExistence,
 } from '../controllers/auth';
 import { Router } from 'express';
 
@@ -26,7 +27,12 @@ router.post(
   blockRequestIfActiveSession,
   requestPasswordReset
 );
-router.post(
+router.get(
+  '/verify-password-reset',
+  blockRequestIfActiveSession,
+  verifyPasswordResetRequestExistence
+);
+router.put(
   '/reset-password',
   blockRequestIfActiveSession,
   completePasswordReset

@@ -19,6 +19,7 @@ import validateSchema from '../lib/validate-schema';
 import z from 'zod';
 import bcrypt from 'bcrypt';
 import PasswordReset from '../models/password-reset';
+import { EMAIL_SCHEMA } from '../schemas/constants';
 
 export const registerUser = async (
   request: Request,
@@ -75,7 +76,7 @@ export const registerUser = async (
     response
       .status(201)
       .cookie('session_id', session_id, {
-        // maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
         ...(process.env.NODE_ENV === 'production' && { secure: true }),
       })
@@ -132,22 +133,13 @@ export const loginUser = async (
       session_id,
     });
 
-    // function removeFieldFromObject<T extends object, K extends keyof T>(
-    //   object: T,
-    //   field: K
-    // ): Omit<T, K> {
-    //   const newObject = { ...object }; // Create a shallow copy of the object
-    //   delete newObject[field]; // Remove the specified field
-    //   return newObject; // Return the new object without the field
-    // }
-
     const user_return = { ...user };
     delete user_return['password'];
 
     response
       .status(201)
       .cookie('session_id', session_id, {
-        // maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
         ...(process.env.NODE_ENV === 'production' && { secure: true }),
       })
@@ -347,7 +339,7 @@ export const authenticateUserWithGoogle = async (
         response
           .status(201)
           .cookie('session_id', session_id, {
-            maxAge: 60 * 60 * 24, // 24 hours
+            maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
             ...(process.env.NODE_ENV === 'production' && { secure: true }),
           })
@@ -388,7 +380,7 @@ export const authenticateUserWithGoogle = async (
       response
         .status(201)
         .cookie('session_id', session_id, {
-          maxAge: 60 * 60 * 24, // 24 hours
+          maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
           ...(process.env.NODE_ENV === 'production' && { secure: true }),
         })
@@ -568,20 +560,60 @@ export const requestPasswordReset = async (
 
     const OTP = generateOTP();
 
+    console.log('OTP', OTP);
+
     await PasswordReset.create({
       user: user._id,
       OTP,
     });
 
-    await sendEmail({
-      receipent: email,
-      subject: 'Password',
-      html: `Use this OTP to reset your password; ${OTP}`,
-    });
+    // await sendEmail({
+    //   receipent: email,
+    //   subject: 'Password',
+    //   html: `Use this OTP to reset your password; ${OTP}`,
+    // });
 
     response
       .status(201)
       .json({ message: `Password reset OTP has been sent to ${email}` });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const verifyPasswordResetRequestExistence = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = request.query;
+
+    if (!email)
+      throw new HttpError('Email is missing in query parameters.', 400);
+
+    const validatedEmail = validateSchema<z.infer<typeof EMAIL_SCHEMA>>(
+      email,
+      EMAIL_SCHEMA
+    );
+
+    const user = await User.findOne({ email: validatedEmail });
+
+    if (!user) {
+      throw new HttpError('No user with the supplied email address', 404);
+    }
+
+    const password_reset_record = await PasswordReset.findOne({
+      user: user._id,
+    });
+
+    if (!password_reset_record) {
+      // throw new HttpError('', 422);
+      response.status(204).json(null);
+      return;
+    }
+
+    response.json({ message: 'Password reset record exists' });
   } catch (error: any) {
     next(error);
   }

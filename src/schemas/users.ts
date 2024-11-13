@@ -73,9 +73,12 @@ export const getUsersFilterSchema = z
     page: numberFilterSchema('page').optional(),
     limit: numberFilterSchema('limit').optional(),
     sort_by: z
-      .enum(['first_name', 'last_name', 'email'], {
-        invalid_type_error: 'Invalid sort_by value provided.',
-      })
+      .enum(
+        ['first_name', 'last_name', 'email', 'date_created', 'date_updated'],
+        {
+          invalid_type_error: 'Invalid sort_by value provided.',
+        }
+      )
       .optional(),
     sort_order: SORT_ORDER_SCHEMA.optional(),
   })

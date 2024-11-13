@@ -26,9 +26,8 @@ import Order, {
   PopulatedOrderItem,
 } from '../models/order';
 import calculateSubTotal from '../lib/calculateSubTotal';
-import { read } from 'fs';
 import BillingInformation from '../models/billing-information';
-import Wishlist from 'models/wishlist';
+import Wishlist from '../models/wishlist';
 
 interface GetUsersFilter {
   email_verified?: boolean;
@@ -66,9 +65,9 @@ export const getAllUsers = async (
     if (search_query) {
       search = {
         $or: [
-          { first_name: { $regex: search_query, $option: 'i' } },
-          { last_name: { $regex: search_query, $option: 'i' } },
-          { email: { $regex: search_query, $option: 'i' } },
+          { first_name: { $regex: search_query, $options: 'i' } },
+          { last_name: { $regex: search_query, $options: 'i' } },
+          { email: { $regex: search_query, $options: 'i' } },
         ],
       };
     }
@@ -94,7 +93,12 @@ export const getAllUsers = async (
       filter: { ...search, ...filter },
       page: +page,
       limit: +limit,
-      sort_by,
+      sort_by:
+        sort_by === 'date_created'
+          ? 'createdAt'
+          : sort_by === 'date_updated'
+          ? 'updatedAt'
+          : sort_by,
       sort_order,
     });
 
@@ -169,7 +173,7 @@ export const updateCurrentUser = async (
       user.last_name = last_name;
     }
 
-    if (password) {
+    if (password && user.auth_type === 'manual') {
       user.password = password;
     }
 
@@ -261,6 +265,34 @@ export const getCurrentUserWishlist = async (
     });
 
     response.json(paginationResult);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getWishlistItemByProductID = async (
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = request.query;
+
+    if (!id)
+      throw new HttpError('Product ID is missing in query parameters.', 400);
+
+    if (!mongoose.isValidObjectId(id))
+      throw new HttpError('Invalid product ID', 400);
+
+    const wishlist_item = await Wishlist.findOne({ product: id });
+
+    if (!wishlist_item) {
+      // throw new HttpError('', 422);
+      response.status(204).json(null);
+      return;
+    }
+
+    response.json(wishlist_item);
   } catch (error: any) {
     next(error);
   }
