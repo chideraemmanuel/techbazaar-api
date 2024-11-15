@@ -95,11 +95,11 @@ const productSchema: Schema<ProductSchemaInterface> = new Schema(
     is_deleted: {
       type: Boolean,
       default: false,
-      select: false,
+      // select: false,
     },
     deleted_at: {
       type: Date,
-      select: false,
+      // select: false,
     },
   },
   { timestamps: true }
