@@ -5,7 +5,6 @@ import { ProductSchemaInterface } from './product';
 export interface WishlistSchemaInterface
   extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
-  // product: mongoose.Types.ObjectId;
   product: ProductSchemaInterface;
 }
 
@@ -15,7 +14,6 @@ const wishlistSchema: Schema<WishlistSchemaInterface> = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      // autopopulate: true,
     },
 
     product: {

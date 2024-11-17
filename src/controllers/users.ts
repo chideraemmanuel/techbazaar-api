@@ -23,7 +23,6 @@ import Order, {
   OrderBillingInformation,
   OrderItem,
   OrderStatus,
-  PopulatedOrderItem,
 } from '../models/order';
 import calculateSubTotal from '../lib/calculateSubTotal';
 import BillingInformation from '../models/billing-information';
@@ -429,9 +428,6 @@ export const getCurrentUserCartSummary = async (
   try {
     const user = request.user;
 
-    //  total number of items
-    //  total price
-
     const pipeline: PipelineStage[] = [
       // Match the documents belonging to the given user
       { $match: { user: user._id } },
@@ -625,7 +621,6 @@ export const incrementCartItemQuantity = async (
       _id: cartItemId,
       user: user._id,
     });
-    // .populate('product');
 
     if (!cart_item) {
       throw new HttpError(
@@ -633,17 +628,6 @@ export const incrementCartItemQuantity = async (
         404
       );
     }
-
-    // const product = await Product.findById(cart_item.product);
-
-    // if (!product) {
-    //   await cart_item.deleteOne();
-
-    //   throw new HttpError(
-    //     'Product with the provided ID does not exist or has been deleted',
-    //     404
-    //   );
-    // }
 
     if (cart_item.product?.is_archived || cart_item.product?.stock === 0) {
       throw new HttpError(
@@ -689,7 +673,6 @@ export const decrementCartItemQuantity = async (
       _id: cartItemId,
       user: user._id,
     });
-    // .populate('product');
 
     if (!cart_item) {
       throw new HttpError(
@@ -697,17 +680,6 @@ export const decrementCartItemQuantity = async (
         400
       );
     }
-
-    // const product = await Product.findById(cart_item.product);
-
-    // if (!product) {
-    //   await cart_item.deleteOne();
-
-    //   throw new HttpError(
-    //     'Product with the provided ID does not exist or has been deleted',
-    //     404
-    //   );
-    // }
 
     if (cart_item.product?.is_archived || cart_item.product?.stock === 0) {
       throw new HttpError(
@@ -1098,7 +1070,6 @@ export const cancelOrder = async (
 
     if (
       order.status === 'in-transit' ||
-      // order.status === 'dispatched' ||
       order.status === 'partially-shipped' ||
       order.status === 'shipped' ||
       order.status === 'out-for-delivery' ||
@@ -1112,7 +1083,6 @@ export const cancelOrder = async (
 
     order.status = 'cancelled';
     await order.save();
-    // await order.deleteOne();
 
     // loop through ordered items and update stock count for each
     for (const order_item of order.items) {

@@ -145,7 +145,6 @@ export const loginUser = async (
       })
       .json({
         message: `Login successful.`,
-        // data: { ...user, password: null },
         data: user_return,
       });
   } catch (error: any) {
@@ -468,7 +467,6 @@ export const verifyEmail = async (
     await user.save();
 
     await emailVerificationRecord.deleteOne();
-    // await EmailVerification.deleteOne({ user: user._id });
 
     // TODO: send welcome email..?
 
@@ -670,7 +668,6 @@ export const completePasswordReset = async (
     await user.save();
 
     await passwordResetRecord.deleteOne();
-    // await PasswordReset.deleteOne({ user: user._id });
 
     response.json({ message: 'Password reset successfully' });
   } catch (error: any) {

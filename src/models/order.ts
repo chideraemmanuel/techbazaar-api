@@ -17,7 +17,6 @@ export type OrderStatus =
   | 'pending'
   | 'processing'
   | 'in-transit'
-  // | 'dispatched'
   | 'partially-shipped'
   | 'out-for-delivery'
   | 'shipped'
@@ -104,7 +103,6 @@ const orderSchema: Schema<OrderSchemaInterface> = new Schema(
         'pending',
         'processing',
         'in-transit',
-        // 'dispatched',
         'partially-shipped',
         'out-for-delivery',
         'shipped',

@@ -1,4 +1,4 @@
-import { SafeParseReturnType, z, ZodSchema } from 'zod';
+import { ZodSchema } from 'zod';
 import HttpError from './http-error';
 
 /**
@@ -12,9 +12,6 @@ const validateSchema = <T>(data: any, schema: ZodSchema): T => {
   const { success, error, data: validated_data } = schema.safeParse(data);
 
   if (!success) {
-    console.log('error.format()._errors', error.format()._errors);
-    console.log(' error.flatten().fieldErrors', error.flatten().fieldErrors);
-
     // @ts-ignore
     throw new HttpError(Object.values(error.flatten().fieldErrors)[0], 400);
   }

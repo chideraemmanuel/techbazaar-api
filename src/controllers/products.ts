@@ -24,8 +24,6 @@ import {
 } from 'firebase/storage';
 import { app } from '../config/firebase';
 import { v4 as uuid } from 'uuid';
-import Cart from '../models/cart';
-import Order from '../models/order';
 
 interface GetProductsFilter {
   name?: { $regex: string; $options: 'i' };
@@ -540,8 +538,6 @@ export const updateProduct = async (
       throw new HttpError('Product does not exist', 404);
     }
 
-    console.log('req body', request.body);
-
     const data = validateSchema<z.infer<typeof productUpdateSchema>>(
       { ...request.body, image: request.file },
       productUpdateSchema
@@ -672,11 +668,12 @@ export const deleteProduct = async (
       throw new HttpError('Product has already been deleted', 422);
     }
 
-    // TODO: implement this..?
+    // TODO: delete product permanently if no resource references the product..?
     // const cartWithProduct = await Cart.findOne({ product: product._id })
+    // const wishlistWithProduct = await Wishlist.findOne({ product: product._id })
     // const orderWithProduct = await Order.findOne({ product: product._id })
 
-    // if (cartWithProduct || orderWithProduct) {
+    // if (cartWithProduct || orderWithProduct || wishlistWithProduct) {
     //   product.is_deleted = true
 
     //   await product.save()

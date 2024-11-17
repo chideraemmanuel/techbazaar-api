@@ -4,7 +4,6 @@ import { ProductSchemaInterface } from './product';
 
 export interface CartSchemaInterface extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
-  // product: mongoose.Types.ObjectId;
   product: ProductSchemaInterface;
   quantity: number;
 }
@@ -15,7 +14,6 @@ const cartSchema: Schema<CartSchemaInterface> = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      // autopopulate: true,
     },
 
     product: {

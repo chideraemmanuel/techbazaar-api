@@ -15,8 +15,7 @@ export type ProductCategory =
 export interface ProductSchemaInterface
   extends Document<mongoose.Types.ObjectId> {
   name: string;
-  brand: mongoose.Types.ObjectId;
-  // brand: BrandSchemaInterface;
+  brand: BrandSchemaInterface;
   description: string;
   category: ProductCategory;
   image: string;
@@ -24,8 +23,6 @@ export interface ProductSchemaInterface
   stock: number;
   SKU: string;
   slug: string;
-  //   rating: number;
-  //   reviews: mongoose.Types.ObjectId[];
   is_featured: boolean;
   is_archived?: boolean;
   is_deleted?: boolean;
@@ -95,11 +92,9 @@ const productSchema: Schema<ProductSchemaInterface> = new Schema(
     is_deleted: {
       type: Boolean,
       default: false,
-      // select: false,
     },
     deleted_at: {
       type: Date,
-      // select: false,
     },
   },
   { timestamps: true }

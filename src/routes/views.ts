@@ -1,4 +1,4 @@
-import { updateViews } from 'controllers/views';
+import { updateViews } from '../controllers/views';
 import { Router } from 'express';
 
 const router = Router();

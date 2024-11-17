@@ -1,17 +1,12 @@
-import { PRODUCT_CATEGORIES_ARRAY } from '../lib/constants';
 import mongoose from 'mongoose';
 import z from 'zod';
 import {
-  ACCEPTED_IMAGE_TYPES,
   booleanEnum,
-  booleanSchema,
   booleanUnion,
-  MAX_FILE_SIZE,
   MAX_PRODUCT_PRICE,
   MAX_STOCK_COUNT,
   MULTER_FILE_SCHEMA,
   numberFilterSchema,
-  numberSchema,
   numberUnion,
   PRODUCT_CATEGORY_SCHEMA,
   SEARCH_QUERY_SCHEMA,

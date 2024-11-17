@@ -8,13 +8,12 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export interface AuthorizedRequest extends Request {
-  // user: UserSchemaInterface & { role: 'admin'};
   user: UserSchemaInterface;
 }
 
 export const authenticateRequest = async (
   request: AuthenticatedRequest,
-  response: Response,
+  _response: Response,
   next: NextFunction
 ) => {
   try {
@@ -51,7 +50,7 @@ export const authenticateRequest = async (
 // ! should be used after `authenticateRequest`
 export const verifyRequest = async (
   request: AuthenticatedRequest,
-  response: Response,
+  _response: Response,
   next: NextFunction
 ) => {
   try {
@@ -73,7 +72,7 @@ export const verifyRequest = async (
 
 export const authorizeRequest = async (
   request: AuthorizedRequest,
-  response: Response,
+  _response: Response,
   next: NextFunction
 ) => {
   try {
@@ -117,7 +116,7 @@ export const authorizeRequest = async (
 
 export const blockRequestIfActiveSession = async (
   request: Request,
-  response: Response,
+  _response: Response,
   next: NextFunction
 ) => {
   try {

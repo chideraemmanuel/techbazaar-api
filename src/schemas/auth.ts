@@ -1,4 +1,3 @@
-import { NAME_REGEX } from '../lib/constants';
 import z from 'zod';
 import {
   EMAIL_SCHEMA,

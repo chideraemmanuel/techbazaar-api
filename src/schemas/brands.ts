@@ -1,9 +1,6 @@
 import z from 'zod';
 import {
-  ACCEPTED_IMAGE_TYPES,
   booleanEnum,
-  booleanSchema,
-  MAX_FILE_SIZE,
   MULTER_FILE_SCHEMA,
   numberFilterSchema,
   SEARCH_QUERY_SCHEMA,

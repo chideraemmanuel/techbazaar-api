@@ -2,7 +2,6 @@ import z from 'zod';
 import {
   AUTH_TYPE_SCHEMA,
   booleanEnum,
-  booleanSchema,
   booleanUnion,
   FIRST_NAME_SCHEMA,
   ISODateSchema,
@@ -122,15 +121,6 @@ export const getUserOrdersFilterSchema = z
     message: `Sorting order isn't specified`,
   });
 
-// const orderItemSchema = z.object({
-//   product: ObjectIdSchema('product'),
-//   quantity: z
-//     .number({
-//       invalid_type_error: 'Invalid quantity. Must be a number.',
-//     })
-//     .min(1, 'Minimum product quantity is 1'),
-// });
-
 const receipentSchema = z.object({
   first_name: FIRST_NAME_SCHEMA,
   last_name: LAST_NAME_SCHEMA,
@@ -167,7 +157,6 @@ const addressSchema = z.object({
 
 export const placeOrderSchema = z
   .object({
-    // items: z.array(orderItemSchema),
     billing_information: z
       .object({
         receipent: receipentSchema,

@@ -352,7 +352,6 @@ export const deleteBrand = async (
       const storage = getStorage(app);
 
       // Extract the file path from the full image URL
-      // const decodedUrl = decodeURIComponent(previous_logo_url);
       const decodedUrl = decodeURIComponent(brand.logo);
       const filePath = decodedUrl.split('/o/')[1].split('?')[0];
 

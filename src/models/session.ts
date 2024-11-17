@@ -22,7 +22,6 @@ const sessionSchema: Schema<SessionSchemaInterface> = new Schema(
       type: Date,
       default: () => Date.now() + 1000 * 60 * 60 * 24, // 24 hours
       expires: 0,
-      // immutable: true,
     },
     // TODO: add device and useragent to model..?
   },

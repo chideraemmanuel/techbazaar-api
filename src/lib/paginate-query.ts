@@ -1,12 +1,10 @@
 import mongoose from 'mongoose';
-import express from 'express';
 
 interface Params {
   model: mongoose.Model<any>;
   filter?: any;
   page?: number;
   limit?: number;
-  // sort_by?: 'name' | 'price';
   sort_by?: string;
   sort_order?: 'ascending' | 'descending';
   select?:
