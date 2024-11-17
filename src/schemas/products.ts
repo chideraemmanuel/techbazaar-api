@@ -5,12 +5,14 @@ import {
   ACCEPTED_IMAGE_TYPES,
   booleanEnum,
   booleanSchema,
+  booleanUnion,
   MAX_FILE_SIZE,
   MAX_PRODUCT_PRICE,
   MAX_STOCK_COUNT,
   MULTER_FILE_SCHEMA,
   numberFilterSchema,
   numberSchema,
+  numberUnion,
   PRODUCT_CATEGORY_SCHEMA,
   SEARCH_QUERY_SCHEMA,
   SORT_ORDER_SCHEMA,
@@ -155,11 +157,9 @@ export const addProductSchema = z.object({
   description: stringSchema('product description', 1, 1000),
   category: PRODUCT_CATEGORY_SCHEMA,
   image: MULTER_FILE_SCHEMA,
-  price: stringSchema('product price', 1, MAX_PRODUCT_PRICE),
-  stock: stringSchema('stock', 1, MAX_STOCK_COUNT),
-  is_featured: z
-    .union([booleanSchema('is_featured'), booleanEnum('is_featured')])
-    .optional(),
+  price: numberUnion('product price', 1, MAX_PRODUCT_PRICE).optional(),
+  stock: numberUnion('stock', 1, MAX_STOCK_COUNT).optional(),
+  is_featured: booleanUnion('is_featured').optional(),
 });
 
 export const productUpdateSchema = z.object({
@@ -168,9 +168,7 @@ export const productUpdateSchema = z.object({
   description: stringSchema('product description', 1, 1000).optional(),
   category: PRODUCT_CATEGORY_SCHEMA.optional(),
   image: MULTER_FILE_SCHEMA.optional(),
-  price: numberSchema('product price', 1, MAX_PRODUCT_PRICE).optional(),
-  stock: numberSchema('stock', 0, MAX_STOCK_COUNT).optional(),
-  is_featured: z
-    .union([booleanSchema('is_featured'), booleanEnum('is_featured')])
-    .optional(),
+  price: numberUnion('product price', 1, MAX_PRODUCT_PRICE).optional(),
+  stock: numberUnion('stock', 0, MAX_STOCK_COUNT).optional(),
+  is_featured: booleanUnion('is_featured').optional(),
 });

@@ -93,6 +93,42 @@ export const numberFilterSchema = (label: string) => {
     .transform((value) => (value ? Number(value) : undefined));
 };
 
+export const numberUnion = (
+  label: string,
+  min: number = 1,
+  max: number = 10000
+) => {
+  return z.union(
+    [
+      z
+        .number({
+          invalid_type_error: `Invalid ${label} provided. Must be a numeric value.`,
+          required_error: `${label} is required`,
+        })
+        .min(min, `${label} cannot be less than ${min}.`)
+        .max(max, `${label} cannot be more than ${max}.`),
+      z
+        .string({
+          required_error: `${label} is required`,
+        })
+        .refine((value) => !isNaN(Number(value)), {
+          message: `Invalid ${label}. Must be a valid number.`,
+        })
+        .refine((value) => +value > min, {
+          message: `${label} cannot be less than ${min}.`,
+        })
+        .refine((value) => +value < max, {
+          message: `${label} cannot be more than ${max}.`,
+        })
+        .transform((value) => (value ? Number(value) : undefined)),
+    ],
+    {
+      invalid_type_error: `Invalid ${label} provided. Must be a numeric value.`,
+      required_error: `${label} is required`,
+    }
+  );
+};
+
 export const MAX_PRODUCT_PRICE = 1000000;
 export const MAX_STOCK_COUNT = 10000;
 
@@ -120,6 +156,13 @@ export const booleanEnum = (label: string) => {
       invalid_type_error: `Invalid ${label} value provided. Must be a boolean.`,
     })
     .transform((value) => value === 'true');
+};
+
+export const booleanUnion = (label: string) => {
+  return z.union([booleanSchema(label), booleanEnum(label)], {
+    invalid_type_error: `Invalid ${label} value provided. Must be a boolean.`,
+    required_error: `${label} is required.`,
+  });
 };
 
 export const AUTH_TYPE_SCHEMA = z.enum(['manual', 'google'], {

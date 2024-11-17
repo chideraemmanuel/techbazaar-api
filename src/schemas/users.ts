@@ -3,6 +3,7 @@ import {
   AUTH_TYPE_SCHEMA,
   booleanEnum,
   booleanSchema,
+  booleanUnion,
   FIRST_NAME_SCHEMA,
   ISODateSchema,
   LAST_NAME_SCHEMA,
@@ -89,7 +90,7 @@ export const getUsersFilterSchema = z
 
 export const updateUserStatusSchema = z.object({
   role: ROLE_SCHEMA.optional(),
-  disabled: booleanSchema('disabled').optional(),
+  disabled: booleanUnion('disabled').optional(),
 });
 
 export const getUserOrdersFilterSchema = z
@@ -173,7 +174,7 @@ export const placeOrderSchema = z
         address: addressSchema,
       })
       .optional(),
-    use_saved_billing_information: booleanSchema(
+    use_saved_billing_information: booleanUnion(
       'use_saved_billing_information'
     ).optional(),
   })

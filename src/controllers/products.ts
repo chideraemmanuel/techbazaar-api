@@ -540,6 +540,8 @@ export const updateProduct = async (
       throw new HttpError('Product does not exist', 404);
     }
 
+    console.log('req body', request.body);
+
     const data = validateSchema<z.infer<typeof productUpdateSchema>>(
       { ...request.body, image: request.file },
       productUpdateSchema
