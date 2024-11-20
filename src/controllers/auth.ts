@@ -52,18 +52,16 @@ export const registerUser = async (
 
     const OTP = generateOTP();
 
-    console.log('OTP', OTP);
-
     await EmailVerification.create({
       user: new_user._id,
       OTP,
     });
 
-    // await sendEmail({
-    //   receipent: email,
-    //   subject: 'Email Verification',
-    //   html: `Use this OTP to complete your registration; ${OTP}`,
-    // });
+    await sendEmail({
+      receipent: email,
+      subject: 'Email Verification',
+      html: `Use this OTP to complete your registration; ${OTP}`,
+    });
 
     const { nanoid } = await import('nanoid');
     const session_id = nanoid();
@@ -511,18 +509,16 @@ export const resendOTP = async (
 
     const OTP = generateOTP();
 
-    console.log('OTP', OTP);
-
     await EmailVerification.create({
       user: user._id,
       OTP,
     });
 
-    // await sendEmail({
-    //   receipent: email,
-    //   subject: 'Email Verification',
-    //   html: `Use this OTP to complete your registration; ${OTP}`,
-    // });
+    await sendEmail({
+      receipent: email,
+      subject: 'Email Verification',
+      html: `Use this OTP to complete your registration; ${OTP}`,
+    });
 
     response
       .status(201)
@@ -566,18 +562,16 @@ export const requestPasswordReset = async (
 
     const OTP = generateOTP();
 
-    console.log('OTP', OTP);
-
     await PasswordReset.create({
       user: user._id,
       OTP,
     });
 
-    // await sendEmail({
-    //   receipent: email,
-    //   subject: 'Password',
-    //   html: `Use this OTP to reset your password; ${OTP}`,
-    // });
+    await sendEmail({
+      receipent: email,
+      subject: 'Password',
+      html: `Use this OTP to reset your password; ${OTP}`,
+    });
 
     response
       .status(201)
