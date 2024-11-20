@@ -933,15 +933,7 @@ export const placeOrder = async (
 
     const { billing_information, use_saved_billing_information } = data;
 
-    console.log({
-      save_billing_information,
-      billing_information,
-      use_saved_billing_information,
-    });
-
     const cart_items = await Cart.find({ user: user._id });
-
-    console.log('[CART_ITEMS]', cart_items);
 
     if (!cart_items || cart_items.length === 0) {
       throw new HttpError(

@@ -603,7 +603,6 @@ export const updateProduct = async (
     }
 
     if (stock !== undefined) {
-      console.log('stockkk', stock);
       if (stock === 0) {
         updates.is_archived = true;
       } else {

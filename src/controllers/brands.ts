@@ -202,8 +202,6 @@ export const addBrand = async (
 
     const { name, logo } = data;
 
-    console.log('logooo', logo);
-
     const brandExists = await Brand.findOne({ name });
 
     if (brandExists) {

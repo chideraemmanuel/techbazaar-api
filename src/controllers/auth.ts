@@ -27,7 +27,6 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    console.log('req body', request.body);
     const data = validateSchema<z.infer<typeof userRegistrationSchema>>(
       request.body,
       userRegistrationSchema
@@ -187,8 +186,6 @@ export const getGoogleOAuthURI = async (
 
     const full_auth_uri = `${base_auth_uri}?${queryStrings.toString()}`;
 
-    console.log('full_auth_uri', full_auth_uri);
-
     response.json({ uri: full_auth_uri });
   } catch (error: any) {
     next(error);
@@ -285,8 +282,6 @@ export const authenticateUserWithGoogle = async (
 
     // @ts-ignore
     const user_data: GoogleUserData = jwt.decode(google_response.id_token);
-
-    console.log('user data', user_data);
 
     const { email, given_name, family_name, picture } = user_data;
 
