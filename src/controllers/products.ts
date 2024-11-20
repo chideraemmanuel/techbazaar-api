@@ -485,7 +485,10 @@ export const addProduct = async (
     }
 
     const storage = getStorage(app);
-    const storageRef = ref(storage, `images/products/${name} image -${uuid()}`);
+    const storageRef = ref(
+      storage,
+      `techbazaar/images/products/${name} image -${uuid()}`
+    );
     const snapshot = await uploadBytes(storageRef, image.buffer);
     const image_url = await getDownloadURL(snapshot.ref);
 
@@ -590,7 +593,7 @@ export const updateProduct = async (
       const storage = getStorage(app);
       const storageRef = ref(
         storage,
-        `images/products/${name || product.name} logo -${uuid()}`
+        `techbazaar/images/products/${name || product.name} image -${uuid()}`
       );
       const snapshot = await uploadBytes(storageRef, image.buffer);
       const image_url = await getDownloadURL(snapshot.ref);

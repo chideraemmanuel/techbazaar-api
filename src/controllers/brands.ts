@@ -212,7 +212,10 @@ export const addBrand = async (
 
     if (logo) {
       const storage = getStorage(app);
-      const storageRef = ref(storage, `images/brands/${name} logo -${uuid()}`);
+      const storageRef = ref(
+        storage,
+        `techbazaar/images/brands/${name} logo -${uuid()}`
+      );
       const snapshot = await uploadBytes(storageRef, logo.buffer);
       const url = await getDownloadURL(snapshot.ref);
 
@@ -276,7 +279,10 @@ export const updateBrand = async (
 
     if (logo) {
       const storage = getStorage(app);
-      const storageRef = ref(storage, `images/brands/${name} logo -${uuid()}`);
+      const storageRef = ref(
+        storage,
+        `techbazaar/images/brands/${name} logo -${uuid()}`
+      );
       const snapshot = await uploadBytes(storageRef, logo.buffer);
       const logo_url = await getDownloadURL(snapshot.ref);
 

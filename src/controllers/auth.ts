@@ -20,6 +20,7 @@ import z from 'zod';
 import bcrypt from 'bcrypt';
 import PasswordReset from '../models/password-reset';
 import { EMAIL_SCHEMA } from '../schemas/constants';
+import jwt from 'jsonwebtoken';
 
 export const registerUser = async (
   request: Request,
@@ -326,9 +327,15 @@ export const authenticateUserWithGoogle = async (
       });
 
       if (success_redirect_path && error_redirect_path) {
-        response.redirect(
-          `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=false`
-        );
+        response
+          .cookie('session_id', session_id, {
+            maxAge: 1000 * 60 * 60 * 24, // 24 hours
+            httpOnly: true,
+            ...(process.env.NODE_ENV === 'production' && { secure: true }),
+          })
+          .redirect(
+            `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=false`
+          );
       } else {
         response
           .status(201)
@@ -362,14 +369,20 @@ export const authenticateUserWithGoogle = async (
     const session_id = nanoid();
 
     await Session.create({
-      user: user._id,
+      user: new_user._id,
       session_id,
     });
 
     if (success_redirect_path && error_redirect_path) {
-      response.redirect(
-        `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=true`
-      );
+      response
+        .cookie('session_id', session_id, {
+          maxAge: 1000 * 60 * 60 * 24, // 24 hours
+          httpOnly: true,
+          ...(process.env.NODE_ENV === 'production' && { secure: true }),
+        })
+        .redirect(
+          `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=true`
+        );
     } else {
       response
         .status(201)
