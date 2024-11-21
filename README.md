@@ -2,9 +2,9 @@
 
 **TechBazaar API** is a fake e-commerce API built for demonstration purposes. It implements basic e-commerce API functionalities such as products data retrieval, user authentication, carts and wishlist management, orders management and more!
 
-<!-- ## Base URL
+## Base URL
 
-All API requests should be made to: `` -->
+All API requests should be made to: [`https://techbazaar-api.onrender.com/api/v1`](https://techbazaar-api.onrender.com/api/v1)
 
 ## Authentication
 
