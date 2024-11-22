@@ -20,7 +20,10 @@ export const updateSession = async (
         response.cookie('session_id', session_id, {
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
-          ...(process.env.NODE_ENV === 'production' && { secure: true }),
+          ...(process.env.NODE_ENV === 'production' && {
+            secure: true,
+            sameSite: 'none',
+          }),
         });
       }
     }

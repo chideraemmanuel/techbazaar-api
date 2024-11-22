@@ -9,7 +9,7 @@ import {
   requestPasswordReset,
   resendOTP,
   verifyEmail,
-  verifyPasswordResetRequestExistence,
+  findPasswordResetRequestRecord,
 } from '../controllers/auth';
 import { Router } from 'express';
 
@@ -30,7 +30,7 @@ router.post(
 router.get(
   '/verify-password-reset',
   blockRequestIfActiveSession,
-  verifyPasswordResetRequestExistence
+  findPasswordResetRequestRecord
 );
 router.put(
   '/reset-password',

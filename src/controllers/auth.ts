@@ -76,7 +76,10 @@ export const registerUser = async (
       .cookie('session_id', session_id, {
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
-        ...(process.env.NODE_ENV === 'production' && { secure: true }),
+        ...(process.env.NODE_ENV === 'production' && {
+          secure: true,
+          sameSite: 'none',
+        }),
       })
       .json({
         message: `Account created successfully. Email verification OTP has been sent to ${email}`,
@@ -139,7 +142,10 @@ export const loginUser = async (
       .cookie('session_id', session_id, {
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
-        ...(process.env.NODE_ENV === 'production' && { secure: true }),
+        ...(process.env.NODE_ENV === 'production' && {
+          secure: true,
+          sameSite: 'none',
+        }),
       })
       .json({
         message: `Login successful.`,
@@ -329,7 +335,10 @@ export const authenticateUserWithGoogle = async (
           .cookie('session_id', session_id, {
             maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
-            ...(process.env.NODE_ENV === 'production' && { secure: true }),
+            ...(process.env.NODE_ENV === 'production' && {
+              secure: true,
+              sameSite: 'none',
+            }),
           })
           .redirect(
             `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=false`
@@ -340,7 +349,10 @@ export const authenticateUserWithGoogle = async (
           .cookie('session_id', session_id, {
             maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
-            ...(process.env.NODE_ENV === 'production' && { secure: true }),
+            ...(process.env.NODE_ENV === 'production' && {
+              secure: true,
+              sameSite: 'none',
+            }),
           })
           .json({
             message: `Login successful.`,
@@ -376,7 +388,10 @@ export const authenticateUserWithGoogle = async (
         .cookie('session_id', session_id, {
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
-          ...(process.env.NODE_ENV === 'production' && { secure: true }),
+          ...(process.env.NODE_ENV === 'production' && {
+            secure: true,
+            sameSite: 'none',
+          }),
         })
         .redirect(
           `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=true`
@@ -387,7 +402,10 @@ export const authenticateUserWithGoogle = async (
         .cookie('session_id', session_id, {
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
-          ...(process.env.NODE_ENV === 'production' && { secure: true }),
+          ...(process.env.NODE_ENV === 'production' && {
+            secure: true,
+            sameSite: 'none',
+          }),
         })
         .json({
           message: `Account created successfully.`,
@@ -581,7 +599,7 @@ export const requestPasswordReset = async (
   }
 };
 
-export const verifyPasswordResetRequestExistence = async (
+export const findPasswordResetRequestRecord = async (
   request: Request,
   response: Response,
   next: NextFunction

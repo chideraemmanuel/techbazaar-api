@@ -79,31 +79,34 @@ export const authorizeRequest = async (
     const { session_id } = request.cookies;
 
     if (!session_id) {
-      throw new HttpError('Unauthorized access', 401);
+      throw new HttpError('Unauthorized access - No Session ID', 401);
     }
 
     const session = await Session.findOne({ session_id });
 
     if (!session) {
-      throw new HttpError('Unauthorized access', 401);
+      throw new HttpError('Unauthorized access - No Session on Database', 401);
     }
 
     const user = await User.findById(session.user);
 
     if (!user) {
-      throw new HttpError('Unauthorized access', 401);
+      throw new HttpError(
+        'Unauthorized access - User Not Found on Database',
+        401
+      );
     }
 
     if (user && !user.email_verified) {
-      throw new HttpError('Unauthorized access', 401);
+      throw new HttpError('Unauthorized access - Email Not Verified', 401);
     }
 
     if (user && user.disabled) {
-      throw new HttpError('Unauthorized access', 401);
+      throw new HttpError('Unauthorized access - User Disabled', 401);
     }
 
     if (user && user.role !== 'admin') {
-      throw new HttpError('Unauthorized access', 403);
+      throw new HttpError('Unauthorized access - User Not Admin', 403);
     }
 
     request.user = user;
