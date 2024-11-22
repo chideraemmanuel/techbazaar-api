@@ -77,6 +77,7 @@ export const registerUser = async (
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
         ...(process.env.NODE_ENV === 'production' && {
+          domain: process.env.API_DOMAIN,
           secure: true,
           sameSite: 'none',
         }),
@@ -143,6 +144,7 @@ export const loginUser = async (
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
         ...(process.env.NODE_ENV === 'production' && {
+          domain: process.env.API_DOMAIN,
           secure: true,
           sameSite: 'none',
         }),
@@ -336,6 +338,7 @@ export const authenticateUserWithGoogle = async (
             maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
             ...(process.env.NODE_ENV === 'production' && {
+              domain: process.env.API_DOMAIN,
               secure: true,
               sameSite: 'none',
             }),
@@ -350,6 +353,7 @@ export const authenticateUserWithGoogle = async (
             maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
             ...(process.env.NODE_ENV === 'production' && {
+              domain: process.env.API_DOMAIN,
               secure: true,
               sameSite: 'none',
             }),
@@ -389,6 +393,7 @@ export const authenticateUserWithGoogle = async (
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
           ...(process.env.NODE_ENV === 'production' && {
+            domain: process.env.API_DOMAIN,
             secure: true,
             sameSite: 'none',
           }),
@@ -403,6 +408,7 @@ export const authenticateUserWithGoogle = async (
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
           ...(process.env.NODE_ENV === 'production' && {
+            domain: process.env.API_DOMAIN,
             secure: true,
             sameSite: 'none',
           }),
