@@ -31,8 +31,7 @@ const limiter = rateLimit({
   message: { error: 'Too many requests, please try again later.' },
 });
 
-// app.use('/api/v1', limiter, updateSession, router);
-app.use('/api/v1', limiter, router);
+app.use('/api/v1', limiter, updateSession, router);
 
 app.use(notFound);
 app.use(errorHandler);

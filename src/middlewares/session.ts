@@ -7,7 +7,12 @@ export const updateSession = async (
   next: NextFunction
 ) => {
   try {
-    const { session_id } = request.cookies;
+    // const { session_id } = request.cookies;
+    const session_id =
+      request.headers.authorization &&
+      request.headers.authorization.startsWith('Bearer')
+        ? request.headers.authorization.split(' ')[1]
+        : null;
 
     if (session_id) {
       const session = await Session.findOne({ session_id });
@@ -15,15 +20,6 @@ export const updateSession = async (
       if (session) {
         await session.updateOne({
           expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
-        });
-
-        response.cookie('session_id', session_id, {
-          maxAge: 1000 * 60 * 60 * 24, // 24 hours
-          httpOnly: true,
-          ...(process.env.NODE_ENV === 'production' && {
-            secure: true,
-            sameSite: 'none',
-          }),
         });
       }
     }
