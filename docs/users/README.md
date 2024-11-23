@@ -25,7 +25,27 @@ Fetches a paginated list of all users (Requires admin authorization).
 | `role` | String | No | Filter users by role. | `user`, `admin` |
 | `disabled` | Boolean | No | Filter users by disabled status. | - |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+data: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  email_verified: boolean;
+  auth_type: 'manual' | 'google';
+  role: 'user' | 'admin';
+  disabled: boolean;
+}
+[];
+pagination: {
+  total_records: number;
+  total_pages: number;
+  current_page: number;
+  previous_page: number;
+  next_page: number;
+}
+```
 
 ### 2. Get Current User
 
@@ -35,7 +55,19 @@ Fetches the currently authenticated user's profile.
 
 **GET** `/users/me`
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+  first_name: string;
+  last_name: string;
+  email: string;
+  email_verified: boolean;
+  auth_type: 'manual' | 'google';
+  role: 'user' | 'admin';
+  disabled: boolean;
+}
+```
 
 ### 3. Get User By ID
 
@@ -50,7 +82,19 @@ Fetches a user's details by their ID (Requires admin authorization).
 | --------- | ---- | -------- | ----------- |
 | `userId` | String | Yes | The user's unique ID. |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+  first_name: string;
+  last_name: string;
+  email: string;
+  email_verified: boolean;
+  auth_type: 'manual' | 'google';
+  role: 'user' | 'admin';
+  disabled: boolean;
+}
+```
 
 ### 4. Update Current User
 
@@ -106,7 +150,39 @@ Fetches a paginated list of the current user's wishlist items (Only accessible t
 | `sort_by` | String | No | Field to sort results by. | `date_created` , `date_updated` |
 | `sort_order` | String | No (Yes, if `sort_by` is specified) | Result sort order. | `ascending` , `descending` |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+    data: {
+       name: string;
+       brand: {
+          name: string;
+          logo?: string;
+          is_deleted?: boolean;
+          deleted_at?: Date;
+        };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+    pagination: {
+        total_records: number;
+        total_pages: number;
+        current_page: number;
+        previous_page: number;
+        next_page: number;
+    }
+}
+```
 
 ### 7.Get Wishlist Item By Product ID
 
@@ -121,7 +197,30 @@ Checks if the current user's wishlist includes the product with the provided ID 
 | --------- | ---- | -------- | ----------- |
 | `id` | String | Yes | The product's unique ID. |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    brand: {
+        name: string;
+        logo?: string;
+        is_deleted?: boolean;
+        deleted_at?: Date;
+    };
+    description: string;
+    category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+    image: string;
+    price: number;
+    stock: number;
+    SKU: string;
+    slug: string;
+    is_featured: boolean;
+    is_archived?: boolean;
+    is_deleted?: boolean;
+    deleted_at?: Date;
+} | ""
+```
 
 ### 8. Add Item To Wishlist
 
@@ -169,7 +268,39 @@ Fetches a paginated list of the current user's cart items (Only accessible to ve
 | `sort_by` | String | No | Field to sort results by. | `date_created` , `date_updated` |
 | `sort_order` | String | No (Yes, if `sort_by` is specified) | Result sort order. | `ascending` , `descending` |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+    data: {
+       name: string;
+       brand: {
+          name: string;
+          logo?: string;
+          is_deleted?: boolean;
+          deleted_at?: Date;
+        };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+    pagination: {
+        total_records: number;
+        total_pages: number;
+        current_page: number;
+        previous_page: number;
+        next_page: number;
+    }
+}
+```
 
 ### 11. Get Current User's Cart Summary
 
@@ -179,7 +310,14 @@ Fetches a paginated list of the authenticated user's cart items (Only accessible
 
 **GET** `/users/me/cart/summary`
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+  total_items: number;
+  total_amount: number;
+}
+```
 
 ### 12.Get Cart Item By Product ID
 
@@ -194,7 +332,30 @@ Checks if the authenticated user's cart includes the product with the provided I
 | --------- | ---- | -------- | ----------- |
 | `id` | String | Yes | The product's unique ID. |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    brand: {
+        name: string;
+        logo?: string;
+        is_deleted?: boolean;
+        deleted_at?: Date;
+    };
+    description: string;
+    category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+    image: string;
+    price: number;
+    stock: number;
+    SKU: string;
+    slug: string;
+    is_featured: boolean;
+    is_archived?: boolean;
+    is_deleted?: boolean;
+    deleted_at?: Date;
+} | ""
+```
 
 ### 13. Add Item To Cart
 
@@ -285,7 +446,63 @@ Fetches a paginated list of the authenticated user's orders (Only accessible to 
 | `start_date` | Date (YYYY-MM-DD) | No | Filter orders starting from a particular date. | - |
 | `end_date` | Date (YYYY-MM-DD) | No | Filter orders ending at a particular date. | - |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+data: {
+  user: {
+     first_name: string;
+     last_name: string;
+     email: string;
+     email_verified: boolean;
+     auth_type: 'manual' | 'google';
+     role: 'user' | 'admin';
+     disabled: boolean;
+};
+  items: {
+      name: string;
+         brand: {
+            name: string;
+            logo?: string;
+            is_deleted?: boolean;
+            deleted_at?: Date;
+       };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+  billing_information: {
+    receipent: {
+      first_name: string;
+      last_name: string;
+      mobile_number: string;
+    };
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+    };
+  };
+  status: 'pending' | 'processing' | 'in-transit' | 'partially-shipped' | 'out-for-delivery' | 'shipped' | 'delivered' | 'cancelled';
+  total_price: number;
+}[];
+ pagination: {
+    total_records: number;
+    total_pages: number;
+    current_page: number;
+    previous_page: number;
+    next_page: number;
+}
+```
 
 ### 19. Get User's Orders
 
@@ -311,7 +528,63 @@ Fetches a paginated list of a user's orders (Requires admin authentication).
 | `start_date` | Date (YYYY-MM-DD) | No | Filter orders starting from a particular date. | - |
 | `end_date` | Date (YYYY-MM-DD) | No | Filter orders ending at a particular date. | - |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+data: {
+  user: {
+     first_name: string;
+     last_name: string;
+     email: string;
+     email_verified: boolean;
+     auth_type: 'manual' | 'google';
+     role: 'user' | 'admin';
+     disabled: boolean;
+};
+  items: {
+      name: string;
+         brand: {
+            name: string;
+            logo?: string;
+            is_deleted?: boolean;
+            deleted_at?: Date;
+       };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+  billing_information: {
+    receipent: {
+      first_name: string;
+      last_name: string;
+      mobile_number: string;
+    };
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+    };
+  };
+  status: 'pending' | 'processing' | 'in-transit' | 'partially-shipped' | 'out-for-delivery' | 'shipped' | 'delivered' | 'cancelled';
+  total_price: number;
+}[];
+ pagination: {
+    total_records: number;
+    total_pages: number;
+    current_page: number;
+    previous_page: number;
+    next_page: number;
+}
+```
 
 ### 20. Get Current User's Order By ID
 
@@ -326,7 +599,56 @@ Fetches details of an order of authenticated user by its ID (Only accessible to 
 | --------- | ---- | -------- | ----------- |
 | `orderId` | String | Yes | The ID of the order. |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+  user: {
+     first_name: string;
+     last_name: string;
+     email: string;
+     email_verified: boolean;
+     auth_type: 'manual' | 'google';
+     role: 'user' | 'admin';
+     disabled: boolean;
+};
+  items: {
+      name: string;
+         brand: {
+            name: string;
+            logo?: string;
+            is_deleted?: boolean;
+            deleted_at?: Date;
+       };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+  billing_information: {
+    receipent: {
+      first_name: string;
+      last_name: string;
+      mobile_number: string;
+    };
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+    };
+  };
+  status: 'pending' | 'processing' | 'in-transit' | 'partially-shipped' | 'out-for-delivery' | 'shipped' | 'delivered' | 'cancelled';
+  total_price: number;
+};
+```
 
 ### 21. Get A User's Order By ID
 
@@ -342,7 +664,56 @@ Fetches details of a user's order its by ID (Requires admin authentication).
 | `userId` | String | Yes | The user's unique ID. |
 | `orderId` | String | Yes | The ID of the order. |
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+  user: {
+     first_name: string;
+     last_name: string;
+     email: string;
+     email_verified: boolean;
+     auth_type: 'manual' | 'google';
+     role: 'user' | 'admin';
+     disabled: boolean;
+};
+  items: {
+      name: string;
+         brand: {
+            name: string;
+            logo?: string;
+            is_deleted?: boolean;
+            deleted_at?: Date;
+       };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+  billing_information: {
+    receipent: {
+      first_name: string;
+      last_name: string;
+      mobile_number: string;
+    };
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+    };
+  };
+  status: 'pending' | 'processing' | 'in-transit' | 'partially-shipped' | 'out-for-delivery' | 'shipped' | 'delivered' | 'cancelled';
+  total_price: number;
+};
+```
 
 ### 22. Place Order
 
@@ -401,4 +772,29 @@ Fetches the saved billing information of the authenticated user (Only accessible
 
 **GET** `/users/me/billing`
 
-<!-- RESPONSE EXAMPLE -->
+**Response Format:**
+
+```ts
+{
+  user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    email_verified: boolean;
+    auth_type: 'manual' | 'google';
+    role: 'user' | 'admin';
+    disabled: boolean;
+  }
+  receipent: {
+    first_name: string;
+    last_name: string;
+    mobile_number: string;
+  }
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+  }
+}
+```

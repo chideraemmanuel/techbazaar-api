@@ -22,7 +22,35 @@ Fetches a list of all **available** brands.
 | `sort_order` | String | No (Yes, if `sort_by` is specified) | Result sort order. | `ascending` , `descending` |
 | `paginated` | Boolean (true) | No | Specifies if result should be returned in a paginated form. | - |
 
-<!-- RESPONSE SAMPLE -->
+#### Response Format:
+
+**Paginated:**
+
+```ts
+data: {
+   name: string;
+   logo?: string;
+   is_deleted?: false;
+}[];
+ pagination: {
+    total_records: number;
+    total_pages: number;
+    current_page: number;
+    previous_page: number;
+    next_page: number;
+}
+```
+
+**Unpaginated:**
+
+```ts
+{
+    name: string;
+    logo?: string;
+    is_deleted?: boolean;
+    deleted_at?: Date;
+}[];
+```
 
 ### 2. Get All Brands
 
@@ -43,7 +71,35 @@ Fetches a list of all brands, including inactive/deleted ones (Requires admin au
 | `is_deleted` | Boolean | No | Filter brands by a deleted status. | - |
 | `paginated` | Boolean (true) | No | Specifies if result should be returned in a paginated form. | - |
 
-<!-- RESPONSE SAMPLE -->
+#### Response Format:
+
+**Paginated:**
+
+```ts
+data: {
+    name: string;
+    logo?: string;
+    is_deleted?: false;
+}[];
+ pagination: {
+    total_records: number;
+    total_pages: number;
+    current_page: number;
+    previous_page: number;
+    next_page: number;
+}
+```
+
+**Unpaginated:**
+
+```ts
+{
+    name: string;
+    logo?: string;
+    is_deleted?: boolean;
+    deleted_at?: Date;
+}[];
+```
 
 ### 3. Get Available Brand by ID or Slug
 
@@ -58,7 +114,15 @@ Fetches an available brand by its ID.
 | --------- | ---- | -------- | ----------- |
 | `brandId` | String | Yes | The brand's unique ID. |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    logo?: string;
+    is_deleted?: false;
+};
+```
 
 ### 4. Get Brand by ID or Slug
 
@@ -73,7 +137,16 @@ Fetches a brand (including inactive/deleted) by its ID (Requires admin authoriza
 | --------- | ---- | -------- | ----------- |
 | `brandId` | String | Yes | The brand's unique ID. |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    logo?: string;
+    is_deleted?: boolean;
+    deleted_at?: Date;
+};
+```
 
 ### 5. Add Brand
 
@@ -89,7 +162,19 @@ Adds a new brand (Requires admin authorization).
 | `name` | String | Yes | Name of the brand. | - |
 | `logo` | File | No | The brand's logo file. | - |
 
-<!-- REQUEST SAMPLE -->
+**Request Sample:**
+
+```bash
+POST /brands
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...
+Content-Type: multipart/form-data
+
+{
+    name: Apple,
+    logo?: File
+}
+```
+
 <!-- RESPONSE SAMPLE -->
 
 ### 8. Update Brand
@@ -111,7 +196,19 @@ Updates an existing brand (Requires admin authorization).
 | `name` | String | No | Updated brand name. | - |
 | `logo` | File | No | Updated brand logo file. | - |
 
-<!-- REQUEST SAMPLE -->
+**Request Sample:**
+
+```bash
+POST /brands/:brandId
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...
+Content-Type: multipart/form-data
+
+{
+    name?: Apple,
+    logo?: File
+}
+```
+
 <!-- RESPONSE SAMPLE -->
 
 ### 9. Delete Brand

@@ -18,7 +18,7 @@ This API uses **session-based authentication**. To access authenticated endpoint
 Authorization: Bearer <session-token>
 ```
 
-_Note: Sessions expire after 24 hours of inactivity._
+_Note: Sessions are updated on every API interaction and expire after 24 hours of inactivity._
 
 ## Error Handling
 

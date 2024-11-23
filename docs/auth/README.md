@@ -88,12 +88,15 @@ Example Response:
 {
   "message": "Email verified successfully",
   "data": {
-    "_id": "123",
-    "first_name": "John",
-    "last_name": "Doe",
-    "email": "john@doe.com",
-    "email_verified": true
-    // other user details
+    "user": {
+      "_id": "123",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@doe.com",
+      "email_verified": true
+      // other user details
+    },
+    "session_id": "09a6q89hqbGC96g"
   }
 }
 ```
@@ -136,19 +139,16 @@ JSON:
 {
   "message": "Login successful",
   "data": {
-    "_id": "123",
-    "first_name": "John",
-    "last_name": "Doe"
-    // other user details
+    "user": {
+      "_id": "123",
+      "first_name": "John",
+      "last_name": "Doe"
+      // other user details
+    },
+    "session_id": "u8s87s8z0n&Jl0BJN"
   }
 }
 ```
-
-Headers:
-
-| Header   | Value                     |
-| -------- | ------------------------- |
-| `Cookie` | session_id={cookie_value} |
 
 ### 4. Logout User
 

@@ -26,7 +26,38 @@ Fetches a paginated list of all **available (active)** products.
 | `max_price` | Number | No | Filter products by a maximum price (in Nigerian Naira). | - |
 | `is_featured` | Boolean | No | Filter products by a `is_featured` status. | - |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    data: {
+        name: string;
+        brand: {
+            name: string;
+            logo?: string;
+            is_deleted?: boolean;
+            deleted_at?: Date;
+        };
+        description: string;
+        category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+        image: string;
+        price: number;
+        stock: number;
+        SKU: string;
+        slug: string;
+        is_featured: boolean;
+        is_archived?: false;
+        is_deleted?: false;
+    }[];
+    pagination: {
+        total_records: number;
+        total_pages: number;
+        current_page: number;
+        previous_page: number;
+        next_page: number;
+    }
+}
+```
 
 ### 2. Get Random Available Products
 
@@ -75,7 +106,39 @@ Fetches a paginated list of all products, including inactive ones (Requires admi
 | `is_archived` | Boolean | No | Filter products by a archived status. | - |
 | `is_deleted` | Boolean | No | Filter products by a deleted status. | - |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    data: {
+       name: string;
+       brand: {
+          name: string;
+          logo?: string;
+          is_deleted?: boolean;
+          deleted_at?: Date;
+        };
+       description: string;
+       category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+       image: string;
+       price: number;
+       stock: number;
+       SKU: string;
+       slug: string;
+       is_featured: boolean;
+       is_archived?: boolean;
+       is_deleted?: boolean;
+       deleted_at?: Date;
+    }[];
+    pagination: {
+        total_records: number;
+        total_pages: number;
+        current_page: number;
+        previous_page: number;
+        next_page: number;
+    }
+}
+```
 
 ### 4. Get Available Product by ID or Slug
 
@@ -90,7 +153,29 @@ Fetches an available product by its ID or slug.
 | --------- | ---- | -------- | ----------- |
 | `idOrSlug` | String | Yes | The product's unique ID or slug. |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    brand: {
+        name: string;
+        logo?: string;
+        is_deleted?: boolean;
+        deleted_at?: Date;
+    };
+    description: string;
+    category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+    image: string;
+    price: number;
+    stock: number;
+    SKU: string;
+    slug: string;
+    is_featured: boolean;
+    is_archived?: false;
+    is_deleted?: false;
+}
+```
 
 ### 5. Get Product by ID or Slug
 
@@ -105,7 +190,30 @@ Fetches a product (including inactive) by its ID or slug (Requires admin authori
 | --------- | ---- | -------- | ----------- |
 | `idOrSlug` | String | Yes | The product's unique ID or slug. |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    brand: {
+        name: string;
+        logo?: string;
+        is_deleted?: boolean;
+        deleted_at?: Date;
+    };
+    description: string;
+    category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+    image: string;
+    price: number;
+    stock: number;
+    SKU: string;
+    slug: string;
+    is_featured: boolean;
+    is_archived?: boolean;
+    is_deleted?: boolean;
+    deleted_at?: Date;
+}
+```
 
 ### 6. Get Related Products
 
@@ -120,7 +228,29 @@ Fetches a list of related products to the given product.
 | --------- | ---- | -------- | ----------- |
 | `idOrSlug` | String | Yes | The product's unique ID or slug. |
 
-<!-- RESPONSE SAMPLE -->
+**Response Format:**
+
+```ts
+{
+    name: string;
+    brand: {
+        name: string;
+        logo?: string;
+        is_deleted?: boolean;
+        deleted_at?: Date;
+    };
+    description: string;
+    category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles';
+    image: string;
+    price: number;
+    stock: number;
+    SKU: string;
+    slug: string;
+    is_featured: boolean;
+    is_archived?: false;
+    is_deleted?: false;
+}[]
+```
 
 ### 7. Add Product
 
@@ -142,7 +272,27 @@ Adds a new product (Requires admin authorization).
 | `stock` | Number | Yes | The number of products in stock. | - |
 | `is_featured` | Boolean | Yes | A boolean flag to either feature the product or not. | - |
 
-<!-- REQUEST SAMPLE -->
+**Request Sample:**
+
+```bash
+POST /products
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...
+Content-Type: multipart/form-data
+
+{
+    name: string,
+    brand: string,
+    description: string,
+    category: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles',
+    image: string,
+    price: number,
+    stock: number,
+    SKU: string,
+    slug: string,
+    is_featured: boolean,
+}
+```
+
 <!-- RESPONSE SAMPLE -->
 
 ### 8. Update Product
@@ -170,7 +320,27 @@ Updates an existing product (Requires admin authorization).
 | `stock` | Number | No | Updated product stock count. | - |
 | `is_featured` | Boolean | No | Updated product `is_featured` flag. | - |
 
-<!-- REQUEST SAMPLE -->
+**Request Sample:**
+
+```bash
+POST /products
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...
+Content-Type: multipart/form-data
+
+{
+    name?: string,
+    brand?: string,
+    description?: string,
+    category?: 'smartphones' | 'tablets' | 'laptops' | 'headphones' | 'speakers' | 'smartwatches' | 'gaming-consoles',
+    image?: string,
+    price?: number,
+    stock?: number,
+    SKU?: string,
+    slug?: string,
+    is_featured?: boolean,
+}
+```
+
 <!-- RESPONSE SAMPLE -->
 
 ### 9. Delete Product

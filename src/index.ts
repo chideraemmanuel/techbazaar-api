@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import './config/database';
 // import './config/nodemailer';
-import express, { NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
