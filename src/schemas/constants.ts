@@ -129,7 +129,7 @@ export const numberUnion = (
   );
 };
 
-export const MAX_PRODUCT_PRICE = 1000000;
+export const MAX_PRODUCT_PRICE = 50000000;
 export const MAX_STOCK_COUNT = 10000;
 
 export const SORT_ORDER_SCHEMA = z.enum(['ascending', 'descending'], {

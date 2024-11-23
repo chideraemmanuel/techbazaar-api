@@ -8,11 +8,17 @@ All API requests should be made to: [`https://techbazaar-api.onrender.com/api/v1
 
 ## Authentication
 
-This API uses session-based authentication. To access authenticated endpoints:
+This API uses **session-based authentication**. To access authenticated endpoints:
 
-Log in via the [`/auth/login`](./docs/auth/README.md#3-login-user) endpoint using valid credentials.
-The server sets an authentication cookie in your browser or client that must be included with subsequent requests.
-Sessions expire after 24 hour2 of inactivity.
+1. Log in via the [`/auth/login`](./docs/auth/README.md#3-login-user) endpoint using valid credentials.
+2. The server will return a session token as part of the response data.
+3. Save this token and include it in the `Authorization` header for subsequent requests in the following format:
+
+```bash
+Authorization: Bearer <session-token>
+```
+
+_Note: Sessions expire after 24 hours of inactivity._
 
 ## Error Handling
 
