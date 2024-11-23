@@ -317,33 +317,14 @@ export const authenticateUserWithGoogle = async (
       });
 
       if (success_redirect_path && error_redirect_path) {
-        response
-          .cookie('session_id', session_id, {
-            maxAge: 1000 * 60 * 60 * 24, // 24 hours
-            httpOnly: true,
-            ...(process.env.NODE_ENV === 'production' && {
-              secure: true,
-              sameSite: 'none',
-            }),
-          })
-          .redirect(
-            `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=false`
-          );
+        response.redirect(
+          `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=false&session_id=${session_id}`
+        );
       } else {
-        response
-          .status(201)
-          .cookie('session_id', session_id, {
-            maxAge: 1000 * 60 * 60 * 24, // 24 hours
-            httpOnly: true,
-            ...(process.env.NODE_ENV === 'production' && {
-              secure: true,
-              sameSite: 'none',
-            }),
-          })
-          .json({
-            message: `Login successful.`,
-            data: user,
-          });
+        response.status(201).json({
+          message: `Login successful.`,
+          data: { user, session_id },
+        });
       }
 
       return;
@@ -370,33 +351,14 @@ export const authenticateUserWithGoogle = async (
     });
 
     if (success_redirect_path && error_redirect_path) {
-      response
-        .cookie('session_id', session_id, {
-          maxAge: 1000 * 60 * 60 * 24, // 24 hours
-          httpOnly: true,
-          ...(process.env.NODE_ENV === 'production' && {
-            secure: true,
-            sameSite: 'none',
-          }),
-        })
-        .redirect(
-          `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=true`
-        );
+      response.redirect(
+        `${process.env.CLIENT_BASE_URL}${success_redirect_path}?new_account=true&session_id=${session_id}`
+      );
     } else {
-      response
-        .status(201)
-        .cookie('session_id', session_id, {
-          maxAge: 1000 * 60 * 60 * 24, // 24 hours
-          httpOnly: true,
-          ...(process.env.NODE_ENV === 'production' && {
-            secure: true,
-            sameSite: 'none',
-          }),
-        })
-        .json({
-          message: `Account created successfully.`,
-          data: new_user,
-        });
+      response.status(201).json({
+        message: `Account created successfully.`,
+        data: { user: new_user, session_id },
+      });
     }
   } catch (error: any) {
     if (success_redirect_path && error_redirect_path) {
