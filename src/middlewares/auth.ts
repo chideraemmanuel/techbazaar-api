@@ -17,7 +17,12 @@ export const authenticateRequest = async (
   next: NextFunction
 ) => {
   try {
-    const { session_id } = request.cookies;
+    // const { session_id } = request.cookies;
+    const session_id =
+      request.headers.authorization &&
+      request.headers.authorization.startsWith('Bearer')
+        ? request.headers.authorization.split(' ')[1]
+        : null;
 
     if (!session_id) {
       throw new HttpError('Unauthorized access', 401);
@@ -76,7 +81,12 @@ export const authorizeRequest = async (
   next: NextFunction
 ) => {
   try {
-    const { session_id } = request.cookies;
+    // const { session_id } = request.cookies;
+    const session_id =
+      request.headers.authorization &&
+      request.headers.authorization.startsWith('Bearer')
+        ? request.headers.authorization.split(' ')[1]
+        : null;
 
     if (!session_id) {
       throw new HttpError('Unauthorized access - No Session ID', 401);
@@ -123,7 +133,12 @@ export const blockRequestIfActiveSession = async (
   next: NextFunction
 ) => {
   try {
-    const { session_id } = request.cookies;
+    // const { session_id } = request.cookies;
+    const session_id =
+      request.headers.authorization &&
+      request.headers.authorization.startsWith('Bearer')
+        ? request.headers.authorization.split(' ')[1]
+        : null;
 
     if (session_id) {
       const session = await Session.findOne({ session_id });

@@ -71,21 +71,13 @@ export const registerUser = async (
       session_id,
     });
 
-    response
-      .status(201)
-      .cookie('session_id', session_id, {
-        maxAge: 1000 * 60 * 60 * 24, // 24 hours
-        httpOnly: true,
-        ...(process.env.NODE_ENV === 'production' && {
-          domain: process.env.CLIENT_DOMAIN,
-          secure: true,
-          sameSite: 'none',
-        }),
-      })
-      .json({
-        message: `Account created successfully. Email verification OTP has been sent to ${email}`,
-        data: new_user_return,
-      });
+    response.status(201).json({
+      message: `Account created successfully. Email verification OTP has been sent to ${email}`,
+      data: {
+        user: new_user_return,
+        session_id,
+      },
+    });
   } catch (error: any) {
     next(error);
   }
@@ -138,21 +130,13 @@ export const loginUser = async (
     const user_return = { ...user };
     delete user_return['password'];
 
-    response
-      .status(201)
-      .cookie('session_id', session_id, {
-        maxAge: 1000 * 60 * 60 * 24, // 24 hours
-        httpOnly: true,
-        ...(process.env.NODE_ENV === 'production' && {
-          domain: process.env.CLIENT_DOMAIN,
-          secure: true,
-          sameSite: 'none',
-        }),
-      })
-      .json({
-        message: `Login successful.`,
-        data: user_return,
-      });
+    response.status(201).json({
+      message: `Login successful.`,
+      data: {
+        user: user_return,
+        session_id,
+      },
+    });
   } catch (error: any) {
     next(error);
   }
@@ -338,7 +322,6 @@ export const authenticateUserWithGoogle = async (
             maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
             ...(process.env.NODE_ENV === 'production' && {
-              domain: process.env.CLIENT_DOMAIN,
               secure: true,
               sameSite: 'none',
             }),
@@ -353,7 +336,6 @@ export const authenticateUserWithGoogle = async (
             maxAge: 1000 * 60 * 60 * 24, // 24 hours
             httpOnly: true,
             ...(process.env.NODE_ENV === 'production' && {
-              domain: process.env.CLIENT_DOMAIN,
               secure: true,
               sameSite: 'none',
             }),
@@ -393,7 +375,6 @@ export const authenticateUserWithGoogle = async (
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
           ...(process.env.NODE_ENV === 'production' && {
-            domain: process.env.CLIENT_DOMAIN,
             secure: true,
             sameSite: 'none',
           }),
@@ -408,7 +389,6 @@ export const authenticateUserWithGoogle = async (
           maxAge: 1000 * 60 * 60 * 24, // 24 hours
           httpOnly: true,
           ...(process.env.NODE_ENV === 'production' && {
-            domain: process.env.CLIENT_DOMAIN,
             secure: true,
             sameSite: 'none',
           }),
@@ -437,7 +417,12 @@ export const logoutUser = async (
   next: NextFunction
 ) => {
   try {
-    const { session_id } = request.cookies;
+    // const { session_id } = request.cookies;
+    const session_id =
+      request.headers.authorization &&
+      request.headers.authorization.startsWith('Bearer')
+        ? request.headers.authorization.split(' ')[1]
+        : null;
 
     if (!session_id) {
       throw new HttpError('No active session found', 400);
@@ -445,9 +430,7 @@ export const logoutUser = async (
 
     await Session.deleteOne({ session_id });
 
-    response
-      .cookie('session_id', '', { maxAge: 0 })
-      .json({ message: 'Logout successful' });
+    response.json({ message: 'Logout successful' });
   } catch (error: any) {
     next(error);
   }
