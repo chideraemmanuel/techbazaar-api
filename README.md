@@ -4,7 +4,7 @@
 
 ## Base URL
 
-All API requests should be made to: [`https://techbazaar-api.vercel.app`](https://techbazaar-api.vercel.app)
+All API requests should be made to: [`https://techbazaar-api.vercel.app/api/v1`](https://techbazaar-api.vercel.app)
 
 ## Authentication
 
